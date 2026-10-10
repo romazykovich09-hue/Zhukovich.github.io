@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пекарня «Тёплый хлеб» — демо-проект</title>
+<meta name="description" content="Учебный демо-проект: одностраничный сайт пекарни и кофейни, свёрстан на HTML и CSS.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Полоска-напоминание: это демо, а не реальная пекарня -->
+<div class="demo-strip">
+  <div class="container demo-strip-inner">
+    <span>Учебный демо-проект для портфолио</span>
+    <a href="../../index.html">← Вернуться в портфолио</a>
+  </div>
+</div>
+
+<!-- ================= ШАПКА ================= -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-mark" aria-hidden="true"></span>
+      Тёплый хлеб
+    </a>
+
+    <nav class="nav">
+      <a href="#menu">Меню</a>
+      <a href="#about">О нас</a>
+      <a href="#visit">Как найти</a>
+    </nav>
+
+    <a class="btn btn-primary btn-small" href="#visit">Забронировать столик</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= ГЛАВНЫЙ ЭКРАН ================= -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <p class="eyebrow">Пекарня и кофейня · Минск</p>
+        <h1>Хлеб, который пахнет домом</h1>
+        <p class="lead">
+          Печём каждое утро с пяти часов. Закваска своя, живёт у нас с 2019 года.
+          Никаких полуфабрикатов — только мука, вода, соль и время.
+        </p>
+
+        <div class="row">
+          <a class="btn btn-primary" href="#visit">Забронировать столик</a>
+          <a class="btn btn-ghost" href="#menu">Смотреть меню</a>
+        </div>
+      </div>
+
+      <!-- «Буханка» нарисована только стилями, без картинок -->
+      <div class="loaf-art" aria-hidden="true">
+        <span class="loaf"></span>
+        <span class="loaf-shadow"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= МЕНЮ ================= -->
+  <section id="menu" class="section section-warm">
+    <div class="container">
+      <p class="eyebrow">01 — Меню</p>
+      <h2>Что у нас есть сегодня</h2>
+
+      <ul class="menu-list">
+        <li>
+          <span class="menu-name">Круассан с миндалём</span>
+          <span class="menu-dots" aria-hidden="true"></span>
+          <span class="menu-price">5,50 BYN</span>
+        </li>
+        <li>
+          <span class="menu-name">Хлеб на закваске, буханка</span>
+          <span class="menu-dots" aria-hidden="true"></span>
+          <span class="menu-price">7,90 BYN</span>
+        </li>
+        <li>
+          <span class="menu-name">Капучино</span>
+          <span class="menu-dots" aria-hidden="true"></span>
+          <span class="menu-price">4,80 BYN</span>
+        </li>
+        <li>
+          <span class="menu-name">Сырники со сметаной</span>
+          <span class="menu-dots" aria-hidden="true"></span>
+          <span class="menu-price">8,20 BYN</span>
+        </li>
+      </ul>
+
+      <p class="note">Меню меняется каждый день — зависит от того, что удалось испечь.</p>
+    </div>
+  </section>
+
+  <!-- ================= О НАС ================= -->
+  <section id="about" class="section">
+    <div class="container">
+      <p class="eyebrow">02 — О нас</p>
+      <h2>Три вещи, за которые к нам возвращаются</h2>
+
+      <div class="features">
+        <article class="feature">
+          <span class="feature-num">01</span>
+          <h3>Своя закваска</h3>
+          <p>Живёт у нас с 2019 года. Подкармливаем каждый день, поэтому вкус хлеба узнают с первого куска.</p>
+        </article>
+
+        <article class="feature">
+          <span class="feature-num">02</span>
+          <h3>Печём ночью</h3>
+          <p>Первая партия готова к семи утра. К открытию на полках ещё горячее — приходите пораньше.</p>
+        </article>
+
+        <article class="feature">
+          <span class="feature-num">03</span>
+          <h3>Всё делаем сами</h3>
+          <p>Тесто, начинки, сиропы — своими руками. Ничего не привозим готовым и не разогреваем в микроволновке.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= КАК НАЙТИ ================= -->
+  <section id="visit" class="section section-warm">
+    <div class="container two-col">
+      <div>
+        <p class="eyebrow">03 — Как найти</p>
+        <h2>Заходите в гости</h2>
+        <p>
+          Мы в центре Минска, в двух минутах от метро. Есть столики у окна и розетки —
+          можно работать за ноутбуком.
+        </p>
+        <div class="row">
+          <a class="btn btn-primary" href="https://t.me/Zhukovich_R" target="_blank" rel="noopener">Написать нам</a>
+        </div>
+      </div>
+
+      <ul class="facts">
+        <li><b>Адрес</b><span>ул. Немига, 12</span></li>
+        <li><b>Пн–Пт</b><span>7:00 — 21:00</span></li>
+        <li><b>Сб–Вс</b><span>8:00 — 22:00</span></li>
+        <li><b>Телефон</b><span>+375 (00) 000-00-00</span></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= ПОДВАЛ ================= -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p>Учебный демо-проект. Название, адрес, цены и телефон вымышлены.</p>
+    <p>Свёрстан Жукович Роман · <a href="../../index.html">портфолио</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

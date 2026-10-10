@@ -1,0 +1,368 @@
+/* ============================================================
+   Сайт-визитка Романа Жуковича.
+   Стиль — «светлый минимализм» (вариант A): много воздуха,
+   строгая типографика, один тёмный акцент, тонкие линии.
+   ============================================================ */
+
+/* --- Переменные: меняешь здесь — меняется весь сайт --- */
+:root {
+  --bg: #fbfbfa;          /* фон страницы */
+  --surface: #ffffff;     /* фон карточек */
+  --ink: #14161a;         /* основной текст и акцент */
+  --muted: #6b7280;       /* второстепенный текст */
+  --line: #e7e7e3;        /* тонкие линии и рамки */
+
+  --radius: 6px;
+  --container: 1100px;
+  --pad: 32px;
+}
+
+/* --- Базовая зачистка стилей --- */
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.03em; line-height: 1.08; }
+h1 { font-size: clamp(34px, 5vw, 60px); max-width: 20ch; }
+h2 { font-size: clamp(24px, 3vw, 36px); margin-bottom: 22px; }
+h3 { font-size: 19px; margin-bottom: 10px; }
+
+p { margin: 0 0 16px; }
+p:last-child { margin-bottom: 0; }
+
+a { color: inherit; }
+
+/* Видимый фокус для клавиатуры — базовая доступность */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* --- Сетка --- */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--pad);
+}
+
+.section { padding: 88px 0; }
+
+.rule { height: 1px; background: var(--line); }
+
+/* --- Шапка --- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(251, 251, 250, .88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 72px;
+}
+
+.logo {
+  font-weight: 600;
+  letter-spacing: -.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: 26px;
+  font-size: 14.5px;
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--muted);
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+
+.nav a:hover { color: var(--ink); border-color: var(--ink); }
+
+/* --- Кнопки --- */
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: transform .15s, opacity .15s;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  padding: 15px 24px;
+}
+
+.btn-primary:hover { opacity: .86; transform: translateY(-1px); }
+
+.btn-ghost {
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 3px;
+  font-weight: 500;
+}
+
+.btn-small { padding: 10px 16px; font-size: 13.5px; }
+
+/* --- Мелкие подписи --- */
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #8a8f98;
+  margin-bottom: 20px;
+}
+
+.lead {
+  font-size: 18px;
+  color: #51565e;
+  max-width: 58ch;
+}
+
+.row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+
+/* --- Главный экран --- */
+.hero { padding: 96px 0 72px; }
+.hero h1 { margin-bottom: 22px; }
+.hero .lead { margin-bottom: 32px; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 36px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, .14);
+}
+
+/* --- Две колонки (текст + факты) --- */
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.facts { list-style: none; margin: 0; padding: 0; }
+
+.facts li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+}
+
+.facts li:last-child { border-bottom: 1px solid var(--line); }
+.facts b { font-weight: 600; white-space: nowrap; }
+.facts span { color: var(--muted); text-align: right; }
+
+/* --- Карточки услуг --- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: #cfcfc9;
+  box-shadow: 0 10px 26px rgba(15, 20, 40, .06);
+}
+
+.card p { color: var(--muted); font-size: 15px; }
+
+.card-meta {
+  margin-top: 18px;
+  font-size: 12.5px !important;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #9aa0a8 !important;
+}
+
+/* --- Работы --- */
+.works {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.work {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+
+.work:hover {
+  transform: translateY(-3px);
+  border-color: #cfcfc9;
+  box-shadow: 0 10px 26px rgba(15, 20, 40, .06);
+}
+
+/* Свободный слот: пунктирная рамка и без «подпрыгивания» —
+   так сразу видно, что работы здесь пока нет */
+.work-empty {
+  border-style: dashed;
+  background: transparent;
+}
+
+.work-empty:hover {
+  transform: none;
+  border-color: #d8d8d2;
+  box-shadow: none;
+}
+
+/* Миниатюра «как окно браузера», нарисованная только на CSS */
+.thumb {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.thumb-cafe { background: linear-gradient(150deg, #f7e6cd 0%, #e6c39a 55%, #d8a86a 100%); }
+
+.thumb-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  background: rgba(255, 255, 255, .5);
+}
+
+.thumb-bar i {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .18);
+}
+
+.thumb-content {
+  position: absolute;
+  inset: 22px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #4a3116;
+}
+
+.thumb-title { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
+.thumb-sub { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+
+.thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(45deg, #faf9f7, #faf9f7 10px, #f4f3f0 10px, #f4f3f0 20px);
+  color: #b3b7bd;
+  font-size: 13px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.work-body { display: block; padding: 22px 24px 26px; }
+
+.work-tag {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 5px 9px;
+  border-radius: 3px;
+  background: #f1f0ec;
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.work-body strong { display: block; font-size: 17px; margin-bottom: 8px; letter-spacing: -.01em; }
+.work-desc { display: block; font-size: 14.5px; color: var(--muted); }
+
+/* --- Контакты --- */
+.contact-note { margin-top: 22px; font-size: 14px; color: var(--muted); }
+
+/* --- Подвал --- */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.footer-inner p { margin: 0; }
+
+/* ============================================================
+   Адаптив: на планшете и телефоне колонки складываются
+   ============================================================ */
+@media (max-width: 900px) {
+  .nav { display: none; }              /* на телефоне меню скрыто — контакт в кнопке справа */
+  .two-col { grid-template-columns: 1fr; gap: 34px; }
+  .cards, .works { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 620px) {
+  :root { --pad: 20px; }
+  body { font-size: 16px; }
+  .section { padding: 60px 0; }
+  .hero { padding: 64px 0 48px; }
+  .cards, .works { grid-template-columns: 1fr; }
+  .facts li { display: block; }
+  .facts span { text-align: left; display: block; margin-top: 4px; }
+}

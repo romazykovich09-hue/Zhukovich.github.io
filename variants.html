@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Три варианта дизайна — выбери один</title>
+<style>
+  /* ============================================================
+     Общая оболочка страницы: серая подложка, три «карточки» поверх.
+     Всё, что относится к вариантам, начинается с .v-a / .v-b / .v-c
+     ============================================================ */
+  :root {
+    --page: #eceef3;
+    --ink: #14161a;
+    --muted: #6b7280;
+    --line: #d8dbe2;
+  }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Шапка с подсказкой и текущим выбором */
+  .bar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar strong { font-size: 15px; }
+  .bar .muted { color: var(--muted); font-size: 13px; margin-left: 10px; }
+  .choice {
+    font-size: 13px; font-weight: 600;
+    padding: 7px 13px; border-radius: 999px;
+    background: #14161a; color: #fff;
+    transition: background .2s;
+  }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 72px; }
+
+  /* Карточка варианта */
+  .variant {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    box-shadow: 0 12px 34px rgba(15, 20, 40, .12);
+    transition: outline-color .2s;
+    outline: 3px solid transparent;
+    outline-offset: 3px;
+  }
+  .variant.selected { outline-color: #2563eb; }
+
+  /* Плашка с буквой варианта и кнопкой выбора */
+  .tag {
+    position: absolute; top: 16px; right: 16px; z-index: 6;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .tag .label {
+    font-size: 12px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; padding: 8px 11px; border-radius: 999px;
+  }
+  button.pick {
+    cursor: pointer; border: 0;
+    font-size: 13px; font-weight: 700;
+    padding: 10px 15px; border-radius: 999px;
+    font-family: inherit;
+  }
+
+  .palette {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 26px; font-size: 12px;
+  }
+  .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    display: inline-block; border: 1px solid rgba(0, 0, 0, .12);
+  }
+  .note { font-size: 12.5px; line-height: 1.5; }
+
+  /* ============================================================
+     ВАРИАНТ A — светлый минимализм
+     ============================================================ */
+  .v-a { background: #fbfbfa; color: #14161a; padding: 60px 56px 48px; }
+  .v-a .eyebrow {
+    font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: #8a8f98;
+  }
+  .v-a h1 {
+    font-size: clamp(30px, 4.4vw, 52px); line-height: 1.03;
+    letter-spacing: -.03em; font-weight: 600;
+    margin: 18px 0 16px; max-width: 18ch;
+  }
+  .v-a .lead {
+    font-size: 17px; line-height: 1.65; color: #51565e;
+    max-width: 54ch; margin: 0 0 28px;
+  }
+  .v-a .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .v-a .btn-primary {
+    background: #14161a; color: #fff; text-decoration: none;
+    padding: 15px 24px; border-radius: 4px; font-size: 14px; font-weight: 600;
+  }
+  .v-a .btn-ghost {
+    color: #14161a; text-decoration: none; font-size: 14px;
+    border-bottom: 1px solid #14161a; padding-bottom: 3px;
+  }
+  .v-a .rule { height: 1px; background: #e7e7e3; margin: 40px 0 24px; }
+  .v-a .services {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px;
+  }
+  .v-a .services strong { display: block; font-size: 14px; margin-bottom: 7px; }
+  .v-a .services span { font-size: 13.5px; line-height: 1.55; color: #6b7280; }
+  .v-a .tag .label { background: #14161a; color: #fff; }
+  .v-a button.pick { background: #14161a; color: #fff; }
+  .v-a .palette { color: #8a8f98; }
+
+  /* ============================================================
+     ВАРИАНТ B — тёмный с градиентами
+     ============================================================ */
+  .v-b {
+    background: #080a14; color: #eaeefb;
+    padding: 60px 56px 52px;
+    position: relative; overflow: hidden;
+  }
+  /* два размытых цветных пятна на фоне */
+  .v-b::before, .v-b::after {
+    content: ""; position: absolute;
+    width: 520px; height: 520px; border-radius: 50%;
+    filter: blur(90px); opacity: .5; pointer-events: none;
+  }
+  .v-b::before { background: #7c3aed; top: -220px; left: -120px; }
+  .v-b::after { background: #22d3ee; bottom: -280px; right: -140px; }
+
+  .v-b .glass {
+    position: relative; z-index: 2;
+    max-width: 760px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .05);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 40px;
+  }
+  .v-b .eyebrow {
+    font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: #a5b4fc;
+  }
+  .v-b h1 {
+    font-size: clamp(30px, 4.4vw, 50px); line-height: 1.06;
+    letter-spacing: -.02em; margin: 16px 0 14px;
+    background: linear-gradient(90deg, #c4b5fd, #67e8f9);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .v-b .lead {
+    font-size: 16.5px; line-height: 1.65; color: #b9c0d4;
+    max-width: 56ch; margin: 0 0 30px;
+  }
+  .v-b .row { display: flex; flex-wrap: wrap; gap: 14px; }
+  .v-b .btn-primary {
+    background: linear-gradient(90deg, #8b5cf6, #22d3ee); color: #08101f;
+    text-decoration: none; font-weight: 700; font-size: 14px;
+    padding: 15px 24px; border-radius: 999px;
+  }
+  .v-b .btn-ghost {
+    border: 1px solid rgba(255, 255, 255, .22); color: #eaeefb;
+    text-decoration: none; font-size: 14px;
+    padding: 14px 22px; border-radius: 999px;
+  }
+  .v-b .stats { display: flex; flex-wrap: wrap; gap: 36px; margin-top: 36px; }
+  .v-b .stats b { display: block; font-size: 22px; letter-spacing: -.01em; }
+  .v-b .stats span { font-size: 12.5px; color: #94a0bd; }
+  .v-b .tag .label { background: rgba(255, 255, 255, .14); color: #eaeefb; }
+  .v-b button.pick { background: linear-gradient(90deg, #8b5cf6, #22d3ee); color: #08101f; }
+  .v-b .palette { color: #94a0bd; }
+
+  /* ============================================================
+     ВАРИАНТ C — яркая типографика
+     ============================================================ */
+  .v-c { background: #0f0f0f; color: #f5f5f5; padding: 60px 56px 48px; }
+  .v-c .eyebrow {
+    display: inline-block; background: #c8ff00; color: #0f0f0f;
+    font-size: 12px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; padding: 7px 11px; border-radius: 2px;
+  }
+  .v-c h1 {
+    font-size: clamp(36px, 6.6vw, 78px); line-height: .95;
+    letter-spacing: -.04em; font-weight: 800; text-transform: uppercase;
+    margin: 22px 0 20px; max-width: 16ch;
+  }
+  .v-c h1 em { font-style: normal; color: #c8ff00; }
+  .v-c .lead {
+    font-size: 17px; line-height: 1.6; color: #a3a3a3;
+    max-width: 56ch; margin: 0 0 30px;
+  }
+  .v-c .row { display: flex; flex-wrap: wrap; gap: 14px; }
+  .v-c .btn-primary {
+    background: #f5f5f5; color: #0f0f0f; text-decoration: none;
+    font-weight: 700; font-size: 14px; padding: 16px 26px; border-radius: 999px;
+  }
+  .v-c .btn-ghost {
+    border: 1px solid #3f3f3f; color: #f5f5f5; text-decoration: none;
+    font-size: 14px; padding: 15px 23px; border-radius: 999px;
+  }
+  .v-c .strip {
+    margin-top: 40px; border-top: 1px solid #262626; padding-top: 20px;
+    display: flex; flex-wrap: wrap; gap: 26px;
+    font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a8a;
+  }
+  .v-c .tag .label { background: #f5f5f5; color: #0f0f0f; }
+  .v-c button.pick { background: #c8ff00; color: #0f0f0f; }
+  .v-c .palette { color: #8a8a8a; }
+
+  /* На узком экране услуги и колонки складываются в столбик */
+  @media (max-width: 760px) {
+    .v-a, .v-b, .v-c { padding: 44px 24px 36px; }
+    .v-b .glass { padding: 26px; }
+    .v-a .services { grid-template-columns: 1fr; gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Шапка: подсказка + текущий выбор -->
+<header class="bar">
+  <div>
+    <strong>Три варианта дизайна сайта-визитки</strong>
+    <span class="muted">Посмотри все три, нажми «Выбрать этот» — или просто скажи мне букву: A, B или C.</span>
+  </div>
+  <div id="choice" class="choice">Вариант не выбран</div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= ВАРИАНТ A ================= -->
+  <section class="variant v-a" data-variant="A" data-title="Светлый минимализм">
+    <div class="tag">
+      <span class="label">Вариант A</span>
+      <button class="pick" type="button">Выбрать этот</button>
+    </div>
+
+    <p class="eyebrow">Веб-дизайн · Минск</p>
+    <h1>Сайты-визитки и лендинги, которые не стыдно показать</h1>
+    <p class="lead">
+      Роман — начинающий веб-дизайнер из Минска. Собираю аккуратные сайты на HTML и CSS:
+      понятная структура, живая типографика, чисто на телефоне и на большом экране.
+    </p>
+
+    <div class="row">
+      <a class="btn-primary" href="#works">Посмотреть работы</a>
+      <a class="btn-ghost" href="#contact">Написать мне</a>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="services">
+      <div><strong>Лендинг под задачу</strong><span>Структура, тексты, вёрстка — один экран или несколько.</span></div>
+      <div><strong>Сайт-визитка</strong><span>1–3 экрана: кто вы, что делаете, контакты.</span></div>
+      <div><strong>Доработка</strong><span>Поправить вёрстку и внешний вид существующего сайта.</span></div>
+    </div>
+
+    <div class="palette">
+      <span class="dot" style="background:#fbfbfa"></span>
+      <span class="dot" style="background:#14161a"></span>
+      <span class="dot" style="background:#8a8f98"></span>
+      <span class="dot" style="background:#e7e7e3"></span>
+      <span class="note">Светлый минимализм: много воздуха, строгая типографика, один тёмный акцент. Строго и «дорого».</span>
+    </div>
+  </section>
+
+  <!-- ================= ВАРИАНТ B ================= -->
+  <section class="variant v-b" data-variant="B" data-title="Тёмный с градиентами">
+    <div class="tag">
+      <span class="label">Вариант B</span>
+      <button class="pick" type="button">Выбрать этот</button>
+    </div>
+
+    <div class="glass">
+      <p class="eyebrow">Веб-дизайн · Минск</p>
+      <h1>Сайты-визитки и лендинги, которые не стыдно показать</h1>
+      <p class="lead">
+        Роман — начинающий веб-дизайнер из Минска. Собираю аккуратные сайты на HTML и CSS:
+        понятная структура, живая типографика, чисто на телефоне и на большом экране.
+      </p>
+
+      <div class="row">
+        <a class="btn-primary" href="#works">Посмотреть работы</a>
+        <a class="btn-ghost" href="#contact">Написать мне</a>
+      </div>
+
+      <div class="stats">
+        <div><b>1–3 дня</b><span>срок на визитку</span></div>
+        <div><b>HTML + CSS</b><span>без тяжёлых фреймворков</span></div>
+        <div><b>Телефон + ПК</b><span>проверяю обе ширины</span></div>
+      </div>
+
+      <div class="palette">
+        <span class="dot" style="background:#080a14"></span>
+        <span class="dot" style="background:#7c3aed"></span>
+        <span class="dot" style="background:#22d3ee"></span>
+        <span class="dot" style="background:#eaeefb"></span>
+        <span class="note">Тёмная тема, градиентные пятна, стеклянный блок. Современно и технологично.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ВАРИАНТ C ================= -->
+  <section class="variant v-c" data-variant="C" data-title="Яркая типографика">
+    <div class="tag">
+      <span class="label">Вариант C</span>
+      <button class="pick" type="button">Выбрать этот</button>
+    </div>
+
+    <p class="eyebrow">Веб-дизайн · Минск</p>
+    <h1>Сайты-визитки и <em>лендинги</em>, которые не стыдно показать</h1>
+    <p class="lead">
+      Роман — начинающий веб-дизайнер из Минска. Собираю аккуратные сайты на HTML и CSS:
+      понятная структура, живая типографика, чисто на телефоне и на большом экране.
+    </p>
+
+    <div class="row">
+      <a class="btn-primary" href="#works">Посмотреть работы</a>
+      <a class="btn-ghost" href="#contact">Написать мне</a>
+    </div>
+
+    <div class="strip">
+      <span>Лендинг под задачу</span>
+      <span>Сайт-визитка</span>
+      <span>Доработка вёрстки</span>
+      <span>Публикация в интернете</span>
+    </div>
+
+    <div class="palette">
+      <span class="dot" style="background:#0f0f0f"></span>
+      <span class="dot" style="background:#c8ff00"></span>
+      <span class="dot" style="background:#f5f5f5"></span>
+      <span class="dot" style="background:#3f3f3f"></span>
+      <span class="note">Крупная типографика, кислотный акцент, контраст. Заметно и молодо — хорошо для творческих проектов.</span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Простой выбор варианта: подсвечиваем карточку и пишем выбор в шапку.
+  document.querySelectorAll('.variant').forEach(function (section) {
+    section.querySelector('button.pick').addEventListener('click', function () {
+      document.querySelectorAll('.variant').forEach(function (other) {
+        other.classList.remove('selected');
+      });
+      section.classList.add('selected');
+      document.getElementById('choice').textContent =
+        'Выбран вариант ' + section.dataset.variant + ' — ' + section.dataset.title;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>

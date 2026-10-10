@@ -1,0 +1,297 @@
+/* ============================================================
+   Демо-проект: лендинг пекарни «Тёплый хлеб».
+   Стиль тёплый и «уютный» — специально другой, чем у портфолио:
+   сливочный фон, округлые кнопки, заголовки с засечками.
+   Никаких картинок: всё нарисовано стилями.
+   ============================================================ */
+
+:root {
+  --cream: #fdf7ee;      /* основной фон */
+  --warm: #f7ecdc;       /* фон тёплых секций */
+  --coffee: #2f2119;     /* текст */
+  --muted: #7a6a5c;      /* второстепенный текст */
+  --crust: #b5743a;      /* акцент — цвет корочки */
+  --line: #eadfcc;       /* линии */
+  --container: 1040px;
+  --pad: 32px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--coffee);
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Заголовки с засечками — «пекарный» характер */
+h1, h2, h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.12;
+  margin: 0;
+}
+
+h1 { font-size: clamp(36px, 5.4vw, 62px); }
+h2 { font-size: clamp(26px, 3.4vw, 40px); margin-bottom: 26px; }
+h3 { font-size: 21px; margin-bottom: 10px; }
+
+p { margin: 0 0 16px; }
+p:last-child { margin-bottom: 0; }
+a { color: inherit; }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--crust);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.container { max-width: var(--container); margin: 0 auto; padding: 0 var(--pad); }
+.section { padding: 84px 0; }
+.section-warm { background: var(--warm); }
+
+/* --- Полоска «это демо» --- */
+.demo-strip {
+  background: var(--coffee);
+  color: #f6e9d8;
+  font-size: 13px;
+}
+
+.demo-strip-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.demo-strip a { color: #f6e9d8; text-decoration: none; border-bottom: 1px solid rgba(246, 233, 216, .5); }
+
+/* --- Шапка --- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(253, 247, 238, .9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 74px;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Кружок-«булочка» вместо логотипа */
+.logo-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #f2cd97, #c98b4b 65%, #a9692f);
+}
+
+.nav { display: flex; gap: 26px; font-size: 15px; }
+
+.nav a {
+  text-decoration: none;
+  color: var(--muted);
+  transition: color .15s;
+}
+
+.nav a:hover { color: var(--coffee); }
+
+/* --- Кнопки --- */
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 999px;         /* мягкие, в отличие от портфолио */
+  transition: transform .15s, opacity .15s;
+}
+
+.btn-primary { background: var(--crust); color: #fff; padding: 15px 26px; }
+.btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+
+.btn-ghost { color: var(--coffee); border-bottom: 1px solid var(--crust); padding-bottom: 3px; font-weight: 500; }
+
+.btn-small { padding: 11px 18px; font-size: 14px; }
+
+.row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #a8917c;
+  margin-bottom: 18px;
+}
+
+.lead { font-size: 18px; color: var(--muted); max-width: 50ch; }
+.note { margin-top: 26px; font-size: 14px; color: var(--muted); }
+
+/* --- Главный экран --- */
+.hero { padding: 72px 0 64px; }
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+  gap: 48px;
+  align-items: center;
+}
+
+.hero h1 { margin-bottom: 20px; }
+.hero .lead { margin-bottom: 30px; }
+
+/* «Буханка»: круг с надрезами и тень под ним */
+.loaf-art { position: relative; display: flex; justify-content: center; }
+
+.loaf {
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, .16) 0 3px, rgba(120, 70, 20, .10) 3px 16px),
+    radial-gradient(circle at 34% 28%, #f3d09c, #cf9152 58%, #a9692f 100%);
+  box-shadow: inset -14px -18px 34px rgba(120, 70, 20, .28), 0 18px 30px rgba(120, 70, 20, .16);
+}
+
+.loaf-shadow {
+  position: absolute;
+  bottom: -14px;
+  width: 180px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(120, 70, 20, .14);
+  filter: blur(6px);
+}
+
+/* --- Меню --- */
+.menu-list { list-style: none; margin: 0; padding: 0; max-width: 720px; }
+
+.menu-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-name { font-size: 18px; }
+
+/* Пунктирная линия между названием и ценой */
+.menu-dots {
+  flex: 1;
+  border-bottom: 2px dotted #ddcdb4;
+  transform: translateY(-4px);
+}
+
+.menu-price { font-weight: 600; white-space: nowrap; }
+
+/* --- Три преимущества --- */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.feature {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.feature-num {
+  display: block;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: var(--crust);
+  margin-bottom: 14px;
+}
+
+.feature p { color: var(--muted); font-size: 15.5px; }
+
+/* --- Список фактов (адрес, часы) --- */
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.facts { list-style: none; margin: 0; padding: 0; }
+
+.facts li {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  font-size: 15.5px;
+}
+
+.facts li:last-child { border-bottom: 1px solid var(--line); }
+.facts b { font-weight: 600; }
+.facts span { color: var(--muted); text-align: right; }
+
+/* --- Подвал --- */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 30px 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.footer-inner p { margin: 0; }
+.footer-inner a { color: var(--coffee); }
+
+/* ============================================================
+   Адаптив
+   ============================================================ */
+@media (max-width: 900px) {
+  .nav { display: none; }
+  .hero-inner { grid-template-columns: 1fr; }
+  .loaf-art { order: -1; margin-bottom: 12px; }
+  .features { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; gap: 32px; }
+}
+
+@media (max-width: 620px) {
+  :root { --pad: 20px; }
+  body { font-size: 16px; }
+  .section { padding: 56px 0; }
+  .hero { padding: 48px 0 40px; }
+  .facts li { display: block; }
+  .facts span { display: block; text-align: left; margin-top: 4px; }
+  .loaf { width: 180px; height: 180px; }
+}

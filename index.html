@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Роман Жукович — сайты-визитки и лендинги</title>
+<meta name="description" content="Начинающий веб-дизайнер из Минска. Сайты-визитки и лендинги на HTML и CSS: понятная структура, аккуратная типографика, адаптив под телефон.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= ШАПКА ================= -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="logo" href="index.html">Роман Жукович</a>
+
+    <nav class="nav">
+      <a href="#about">Обо мне</a>
+      <a href="#services">Услуги</a>
+      <a href="#works">Работы</a>
+      <a href="#contact">Контакты</a>
+    </nav>
+
+    <a class="btn btn-primary btn-small" href="https://t.me/Zhukovich_R" target="_blank" rel="noopener">Telegram</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= ГЛАВНЫЙ ЭКРАН ================= -->
+  <section class="hero container">
+    <p class="eyebrow">Веб-дизайн · Минск</p>
+    <h1>Сайты-визитки и лендинги, которые не стыдно показать</h1>
+    <p class="lead">
+      Меня зовут Роман. Делаю аккуратные сайты на HTML и CSS: понятная структура,
+      живая типографика, одинаково чисто на телефоне и на большом экране.
+    </p>
+
+    <div class="row">
+      <a class="btn btn-primary" href="#works">Посмотреть работы</a>
+      <a class="btn btn-ghost" href="https://t.me/Zhukovich_R" target="_blank" rel="noopener">Написать в Telegram</a>
+    </div>
+
+    <p class="badge"><span class="badge-dot" aria-hidden="true"></span> Свободен для первых заказов</p>
+  </section>
+
+  <div class="container"><div class="rule"></div></div>
+
+  <!-- ================= ОБО МНЕ ================= -->
+  <section id="about" class="container section">
+    <p class="eyebrow">01 — Обо мне</p>
+
+    <div class="two-col">
+      <div>
+        <h2>Учусь, делаю, показываю результат</h2>
+        <p>
+          Студент БНТУ, энергетический факультет. В веб пришёл из интереса к дизайну:
+          нравится, когда простая страница выглядит продуманно и работает без лишней сложности.
+        </p>
+        <p>
+          Верстаю на чистом HTML и CSS, без конструкторов и тяжёлых фреймворков.
+          Это значит: страница быстро открывается, легко правится и не ломается
+          от обновлений чужих плагинов.
+        </p>
+      </div>
+
+      <!-- Короткие факты: клиенту удобно прочитать за 5 секунд -->
+      <ul class="facts">
+        <li><b>Город</b><span>Минск, работаю удалённо</span></li>
+        <li><b>Стек</b><span>HTML, CSS, немного JavaScript</span></li>
+        <li><b>Срок</b><span>визитка — 1–3 дня</span></li>
+        <li><b>Цена</b><span>по договорённости, первые проекты — со скидкой</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="container"><div class="rule"></div></div>
+
+  <!-- ================= УСЛУГИ ================= -->
+  <section id="services" class="container section">
+    <p class="eyebrow">02 — Услуги</p>
+    <h2>Что я делаю</h2>
+
+    <div class="cards">
+      <article class="card">
+        <h3>Лендинг под задачу</h3>
+        <p>Одностраничный сайт для услуги или товара: структура, тексты, вёрстка, адаптив.</p>
+        <p class="card-meta">от 1 до 5 экранов</p>
+      </article>
+
+      <article class="card">
+        <h3>Сайт-визитка</h3>
+        <p>Короткий сайт о вас или о деле: кто вы, что делаете, как связаться. С портфолио.</p>
+        <p class="card-meta">1–3 экрана</p>
+      </article>
+
+      <article class="card">
+        <h3>Доработка сайта</h3>
+        <p>Поправить вёрстку и внешний вид существующей страницы: отступы, шрифты, адаптив.</p>
+        <p class="card-meta">по объёму работ</p>
+      </article>
+    </div>
+  </section>
+
+  <div class="container"><div class="rule"></div></div>
+
+  <!-- ================= РАБОТЫ ================= -->
+  <section id="works" class="container section">
+    <p class="eyebrow">03 — Работы</p>
+    <h2>Примеры</h2>
+
+    <div class="works">
+
+      <!-- Учебный проект: настоящая ссылка на готовую страницу -->
+      <a class="work" href="demo/cafe/index.html">
+        <span class="thumb thumb-cafe" aria-hidden="true">
+          <span class="thumb-bar"><i></i><i></i><i></i></span>
+          <span class="thumb-content">
+            <span class="thumb-title">Тёплый хлеб</span>
+            <span class="thumb-sub">пекарня · лендинг</span>
+          </span>
+        </span>
+        <span class="work-body">
+          <span class="work-tag">Учебный проект</span>
+          <strong>Лендинг пекарни «Тёплый хлеб»</strong>
+          <span class="work-desc">Одностраничный сайт: меню, о нас, часы работы. Свёрстан на HTML и CSS, без картинок и внешних библиотек.</span>
+        </span>
+      </a>
+
+      <!-- Свободные слоты: показывают, что портфолио растёт -->
+      <article class="work work-empty">
+        <span class="thumb thumb-empty" aria-hidden="true"><span>свободно</span></span>
+        <span class="work-body">
+          <strong>Здесь может быть ваш проект</strong>
+          <span class="work-desc">Сделаю сайт-визитку или лендинг — и он займёт это место.</span>
+        </span>
+      </article>
+
+      <article class="work work-empty">
+        <span class="thumb thumb-empty" aria-hidden="true"><span>свободно</span></span>
+        <span class="work-body">
+          <strong>Здесь может быть ваш проект</strong>
+          <span class="work-desc">Для первых заказов цена ниже, а внимания — больше.</span>
+        </span>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="container"><div class="rule"></div></div>
+
+  <!-- ================= КОНТАКТЫ ================= -->
+  <section id="contact" class="container section">
+    <p class="eyebrow">04 — Контакты</p>
+    <h2>Напишите — обсудим задачу</h2>
+    <p class="lead">
+      Отвечаю в Telegram. Расскажите, что нужно: сделаю, покажу черновик,
+      поправим и опубликую в интернете.
+    </p>
+
+    <div class="row">
+      <a class="btn btn-primary" href="https://t.me/Zhukovich_R" target="_blank" rel="noopener">Telegram: @Zhukovich_R</a>
+    </div>
+
+    <!-- TODO: когда появится почта или GitHub — добавить ссылки сюда -->
+    <p class="contact-note">
+      Почта и GitHub появятся здесь позже. Пока весь контакт — Telegram.
+    </p>
+  </section>
+
+</main>
+
+<!-- ================= ПОДВАЛ ================= -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <p>Жукович Роман Евгеньевич · Минск</p>
+    <p>© 2026 · Свёрстано вручную на HTML и CSS</p>
+  </div>
+</footer>
+
+</body>
+</html>
