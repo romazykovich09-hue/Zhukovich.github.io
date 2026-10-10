@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Звёздная пыль — интерактивный фон</title>
+<meta name="description" content="Учебный демо-проект: ночное небо с пылинками. Зажмите левую кнопку мыши — мерцание закрутится вокруг курсора; ведите мышью — потянется шлейф. Справа — панель настройки цвета и поведения.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Полоска-напоминание, что это демо для портфолио -->
+<div class="demo-strip">
+  <div class="strip-inner">
+    <span>Учебный демо-проект для портфолио</span>
+    <a href="../../index.html">← Вернуться в портфолио</a>
+  </div>
+</div>
+
+<!-- Два слоя: пылинки (нижний) и искры со шлейфом (верхний) -->
+<canvas id="dust" aria-hidden="true"></canvas>
+<canvas id="sparks" aria-hidden="true"></canvas>
+
+<p class="hint">Зажми левую кнопку мыши — мерцание закрутится вокруг курсора. Веди мышью — потянется шлейф.</p>
+
+<!-- Панель настроек: содержимое собирает script.js -->
+<aside class="panel" id="panel" aria-label="Настройки эффекта"></aside>
+<button class="panel-toggle" id="panelToggle" type="button" title="Показать или скрыть настройки (клавиша H)">⚙</button>
+
+<script src="script.js"></script>
+</body>
+</html>

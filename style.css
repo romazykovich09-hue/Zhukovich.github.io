@@ -269,6 +269,20 @@ a:focus-visible, button:focus-visible {
 
 .thumb-cafe { background: linear-gradient(150deg, #f7e6cd 0%, #e6c39a 55%, #d8a86a 100%); }
 
+/* Миниатюра демо «Звёздная пыль» — то же ночное небо, что и на самой странице:
+   градиент плюс несколько «пылинок» из точечных градиентов */
+.thumb-stars {
+  background:
+    radial-gradient(2px 2px at 18% 28%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 60%),
+    radial-gradient(2px 2px at 68% 62%, rgba(200, 220, 255, .9), rgba(200, 220, 255, 0) 60%),
+    radial-gradient(1.5px 1.5px at 44% 76%, rgba(255, 220, 180, .85), rgba(255, 220, 180, 0) 60%),
+    radial-gradient(1.5px 1.5px at 86% 24%, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(160deg, #0b1430 0%, #060a18 60%, #020409 100%);
+}
+
+/* На тёмной миниатюре подписи должны быть светлыми */
+.thumb-stars .thumb-content { color: #dbe6ff; }
+
 .thumb-bar {
   position: absolute;
   top: 0; left: 0; right: 0;

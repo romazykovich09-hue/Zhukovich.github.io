@@ -1,0 +1,279 @@
+/* ============================================================
+   «Звёздная пыль» — ночное небо с пылинками.
+   Фон — CSS-градиенты, пылинки и искры — на canvas,
+   панель настроек собирается скриптом и живёт справа.
+   ============================================================ */
+
+:root {
+  --sky-mid: #070d22;     /* верх неба */
+  --sky-deep: #04060f;    /* середина */
+  --sky-glow: #0d1a3d;    /* свечение у горизонта */
+  --ink: #cfe0ff;
+  --muted: #8598c2;
+  --line: rgba(120, 150, 220, .18);
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Ночное небо: свечение снизу, подсветка сверху, общий тон */
+  background:
+    radial-gradient(1200px 800px at 50% 112%, var(--sky-glow) 0%, rgba(13, 26, 61, 0) 62%),
+    radial-gradient(900px 600px at 12% -5%, #0a1330 0%, rgba(10, 19, 48, 0) 58%),
+    linear-gradient(180deg, var(--sky-mid) 0%, var(--sky-deep) 68%, #01030a 100%);
+
+  overflow: hidden;        /* фон занимает весь экран, страница не прокручивается */
+  touch-action: none;      /* на телефоне свайп не уводит страницу */
+  cursor: crosshair;
+}
+
+/* Оба слоя на весь экран; клики по ним не нужны — слушаем окно.
+   Размер холста задаёт скрипт в пикселях экрана: если этого не делать,
+   браузер растягивает холст по своему внутреннему размеру, и на экранах
+   с масштабом 125–150% всё нарисованное съезжает вправо-вниз. */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: block;
+  pointer-events: none;
+}
+
+#dust { z-index: 1; }
+#sparks { z-index: 2; }
+
+/* --- Полоска «это демо» --- */
+.demo-strip {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 8;
+  background: rgba(4, 8, 20, .72);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.strip-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 10px 20px;
+}
+
+.demo-strip a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(207, 224, 255, .35);
+}
+
+.demo-strip a:hover { border-color: var(--ink); }
+
+/* --- Подсказка внизу --- */
+.hint {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  z-index: 5;
+  margin: 0;
+  max-width: min(680px, 60vw);
+  text-align: center;
+  padding: 11px 20px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #a9bde6;
+  background: rgba(8, 14, 34, .6);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+  user-select: none;
+  transition: opacity .9s ease;
+}
+
+.hint.hidden { opacity: 0; }
+
+/* Мягкое затемнение по краям — «ночная» глубина кадра */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .55) 100%);
+}
+
+/* ============================================================
+   Панель настроек справа
+   ============================================================ */
+.panel {
+  position: fixed;
+  top: 47px;
+  right: 0;
+  bottom: 0;
+  z-index: 7;
+  width: 320px;
+  padding: 14px 16px 30px;
+  overflow-y: auto;
+  background: rgba(6, 10, 24, .84);
+  backdrop-filter: blur(14px);
+  border-left: 1px solid var(--line);
+  font-size: 13px;
+  color: #c9d7f5;
+  transform: translateX(0);
+  transition: transform .35s ease;
+}
+
+.panel.collapsed { transform: translateX(103%); }
+
+.panel::-webkit-scrollbar { width: 9px; }
+.panel::-webkit-scrollbar-thumb { background: rgba(120, 150, 220, .28); border-radius: 99px; }
+
+.panel h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  letter-spacing: -.01em;
+  color: #e7efff;
+}
+
+.panel .sub {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #7f90b6;
+}
+
+.group { padding: 13px 0 3px; border-top: 1px solid rgba(120, 150, 220, .12); }
+
+.group > h3 {
+  margin: 0 0 11px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #7c8db3;
+}
+
+.field { margin-bottom: 13px; }
+
+.field-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+}
+
+.field-top span { color: #9fb0d4; }
+.field-top b { color: #e6eeff; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+input[type="range"] {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(90deg, #4b6bd6, #22d3ee);
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #eaf2ff;
+  border: 2px solid #6f8fe8;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 2px solid #6f8fe8;
+  border-radius: 50%;
+  background: #eaf2ff;
+  cursor: pointer;
+}
+
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: rgba(14, 22, 46, .95);
+  color: #dbe6ff;
+  border: 1px solid rgba(120, 150, 220, .25);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+  font-size: 12.5px;
+  color: #a9bade;
+  cursor: pointer;
+}
+
+.check input { width: 15px; height: 15px; accent-color: #6f8fe8; cursor: pointer; }
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.buttons button {
+  flex: 1 1 46%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(120, 150, 220, .28);
+  background: rgba(20, 30, 60, .7);
+  color: #dbe6ff;
+  font-family: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.buttons button:hover { background: rgba(35, 50, 95, .9); border-color: rgba(150, 180, 255, .5); }
+
+.buttons button.wide { flex: 1 1 100%; }
+
+/* Кнопка-шестерёнка в углу */
+.panel-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(120, 150, 220, .3);
+  background: rgba(10, 16, 36, .85);
+  color: #cfe0ff;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform .2s, background .2s;
+}
+
+.panel-toggle:hover { transform: scale(1.07); background: rgba(24, 36, 72, .95); }
+
+/* --- Узкие экраны --- */
+@media (max-width: 760px) {
+  .panel { width: 88vw; top: 44px; }
+  .hint { max-width: 84vw; bottom: 78px; }
+}
