@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mercedes-Benz M120 — устройство V12 в 3D</title>
+<meta name="description" content="Учебный 3D-разбор двигателя Mercedes-Benz M120: модель в сборе, каждая деталь, режим взрыва, пошаговая сборка, каталог деталей и проверка знаний. Стиль — гаражная мастерская.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Полоска-напоминание, что это демо для портфолио -->
+<div class="demo-strip">
+  <div class="wrap strip-inner">
+    <span>Учебный проект для портфолио · Mercedes-Benz M120</span>
+    <a href="../../index.html">← Вернуться в портфолио</a>
+  </div>
+</div>
+
+<!-- ================= ШАПКА ================= -->
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="logo" href="#top">
+      <svg class="icon icon-logo" aria-hidden="true" focusable="false"><use href="#i-piston"></use></svg>
+      <span>M120 <b>V12</b></span>
+    </a>
+
+    <nav class="nav" aria-label="Разделы страницы">
+      <a href="#viewer">3D-модель</a>
+      <a href="#assembly">Сборка</a>
+      <a href="#catalog">Каталог</a>
+      <a href="#theory">Как работает</a>
+      <a href="#quiz">Проверка</a>
+    </nav>
+
+    <span class="badge">60° · 6,0 л · 48 клапанов</span>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= ЗАГОЛОВОК ================= -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Гаражная мастерская · учебный 3D-разбор</p>
+      <h1>Двигатель Mercedes-Benz M120<br><span>по деталям и по шагам</span></h1>
+      <p class="lead">
+        Атмосферный V12 6,0 литра: развал 60°, алюминиевый блок, четыре распредвала,
+        48 клапанов. Модель можно вращать, приближать колесом мыши, разбирать на детали
+        и собирать заново. Есть <b>тренажёр разборки</b>: он проверяет порядок — снять деталь
+        можно только тогда, когда это правильно, и подсвечивает верный ход зелёным, а ошибку красным.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#viewer">Открыть 3D-модель</a>
+        <a class="btn btn-ghost" href="#catalog">Каталог деталей</a>
+      </div>
+
+      <!-- Характеристики подставляет app.js из data.js -->
+      <div class="specs" id="specs"></div>
+
+      <p class="honest">
+        <b>Что это за модель.</b> Структура и пропорции построены по открытым данным:
+        развал 60°, 89 × 80,2 мм, четыре клапана на цилиндр, цепной привод ГРМ.
+        Расстояние между цилиндрами, длина шатуна и толщины стенок в открытых источниках
+        не публикуются — они взяты правдоподобно. Поэтому это <b>учебная схема</b>, а не CAD-копия.
+        Моменты затяжки здесь тоже не выдуманы: их берут только из заводского руководства.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= 3D-МОДЕЛЬ ================= -->
+  <section id="viewer" class="section">
+    <div class="wrap">
+      <p class="eyebrow">01 — Рабочий стол</p>
+      <h2>Модель в сборе и в разборе</h2>
+
+      <div class="viewer">
+        <!-- Сцена -->
+        <div class="stage">
+          <canvas id="scene"></canvas>
+
+          <!-- Панель инструментов поверх сцены -->
+          <div class="toolbar">
+            <div class="tool-group">
+              <span class="tool-label">Вид</span>
+              <button type="button" data-view="full">Общий</button>
+              <button type="button" data-view="front">Спереди</button>
+              <button type="button" data-view="side">Сбоку</button>
+              <button type="button" data-view="top">Сверху</button>
+              <button type="button" data-view="cut">Разрез</button>
+            </div>
+            <div class="tool-group">
+              <button type="button" id="btn-xray" title="Показать блок и головки прозрачными (клавиша X)">Рентген</button>
+              <button type="button" id="btn-rotate" title="Автоматическое вращение (пробел)">Вращение</button>
+              <button type="button" id="btn-isolate" title="Показать только выбранную деталь">Только деталь</button>
+              <button type="button" id="btn-reset" title="Сбросить вид (клавиша R)">Сброс</button>
+            </div>
+          </div>
+
+          <!-- Ползунок взрыва -->
+          <div class="explode-bar">
+            <label for="explode">Разнести детали</label>
+            <input type="range" id="explode" min="0" max="100" value="0" step="1">
+          </div>
+
+          <!-- Подсказка по управлению -->
+          <div class="controls-hint">
+            <span><b>ЛКМ</b> — поворот</span>
+            <span><b>Колесо</b> — масштаб</span>
+            <span><b>ПКМ</b> — сдвиг</span>
+            <span class="hl"><b>ЛКМ + колесо</b> — снять / поставить</span>
+          </div>
+        </div>
+
+        <aside class="side" id="panel-right">
+
+          <!-- Тренажёр разборки: порядок, проверка, подсказки -->
+          <section class="trainer">
+            <h3 class="side-title">Тренажёр разборки</h3>
+            <div class="train-stats" id="train-stats"></div>
+            <div class="train-progress"><i id="train-bar"></i></div>
+
+            <p class="train-help">
+              Держите <b>ЛКМ</b> на детали и крутите колесо: <b>вверх</b> — снять, <b>вниз</b> — поставить.
+              Снять можно только то, что поставлено последним, а поставить — только то, под чем уже есть основа.
+              Верный ход подсвечивается <b class="ok">зелёным</b>, неверный — <b class="bad">красным</b> с объяснением,
+              что мешает.
+            </p>
+
+            <div class="train-actions">
+              <button type="button" id="btn-hint">Подсказать деталь</button>
+              <button type="button" id="btn-train-reset">Вернуть всё</button>
+            </div>
+
+            <div class="train-log" id="train-log"></div>
+          </section>
+
+          <h3 class="side-title">Выбранная деталь</h3>
+          <div id="info" class="info">
+            <p class="hint-soft">Выберите деталь на модели или в каталоге — здесь появится её описание.</p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Загрузчик и сообщение об ошибке -->
+      <div class="loader" id="loader"><span class="spinner"></span> Собираю двигатель…</div>
+      <div class="fatal" id="fatal" hidden><b>Не получилось запустить 3D</b><p></p></div>
+    </div>
+  </section>
+
+  <!-- ================= СБОРКА ================= -->
+  <section id="assembly" class="section section-warm">
+    <div class="wrap">
+      <p class="eyebrow">02 — Порядок сборки</p>
+      <h2>От пустого блока до готового мотора</h2>
+      <p class="lead">
+        Восемь шагов в том порядке, в каком это делают в мастерской. Нажмите шаг — на модели
+        останутся только его детали, а справа появится объяснение и предупреждение.
+      </p>
+
+      <div class="assembly">
+        <div class="steps" id="steps-list"></div>
+        <div class="step-text" id="step-text">
+          <p class="hint-soft">Выберите шаг — останутся только его детали.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= КАТАЛОГ ================= -->
+  <section id="catalog" class="section">
+    <div class="wrap">
+      <p class="eyebrow">03 — Каталог</p>
+      <h2>Все детали двигателя</h2>
+
+      <div class="catalog-tools">
+        <input type="search" id="catalog-search" placeholder="Поиск: коленвал, клапан, насос…" aria-label="Поиск по каталогу">
+        <div class="chips" id="group-chips"></div>
+      </div>
+
+      <div class="catalog" id="catalog-list"></div>
+    </div>
+  </section>
+
+  <!-- ================= КАК РАБОТАЕТ ================= -->
+  <section id="theory" class="section section-warm">
+    <div class="wrap">
+      <p class="eyebrow">04 — Как это работает</p>
+      <h2>Четыре такта, двенадцать цилиндров, шестьдесят градусов</h2>
+
+      <div class="theory">
+        <article>
+          <h3>Рабочий цикл</h3>
+          <p>
+            Каждый цилиндр работает за четыре такта: <b>впуск</b> — поршень идёт вниз, впускные клапаны открыты;
+            <b>сжатие</b> — поршень вверх, смесь сжимается; <b>рабочий ход</b> — свеча поджигает смесь, газы толкают поршень вниз;
+            <b>выпуск</b> — выпускные клапаны открыты, поршень выталкивает газы.
+          </p>
+        </article>
+
+        <article>
+          <h3>Почему вспышка каждые 60°</h3>
+          <p>
+            Полный цикл четырёхтактного двигателя занимает два оборота коленвала — 720°.
+            Делим на двенадцать цилиндров и получаем 60°: именно через такой поворот
+            в V12 происходит очередная вспышка. Поэтому двигатель работает так ровно.
+          </p>
+        </article>
+
+        <article>
+          <h3>Зачем развал 60°</h3>
+          <p>
+            Два ряда по шесть цилиндров сходятся под углом 60°. Такая схема даёт равномерное
+            чередование вспышек, компактную ширину и хорошую уравновешенность — силы от поршней
+            взаимно гасятся, поэтому балансирные валы не нужны.
+          </p>
+        </article>
+
+        <article>
+          <h3>Почему четыре клапана</h3>
+          <p>
+            Два впускных и два выпускных клапана на цилиндр лучше наполняют цилиндр смесью
+            и быстрее выпускают газы. Свеча при этом оказывается в центре камеры сгорания —
+            фронт пламени расходится равномернее, а значит, топливо сгорает полнее.
+          </p>
+        </article>
+
+        <article>
+          <h3>Коленвал и шатуны</h3>
+          <p>
+            Двенадцать цилиндров образуют шесть пар, поэтому шатунных шеек шесть, а коренных
+            опор между ними — семь. На каждую шейку опираются два шатуна: по одному из каждого
+            ряда. Противовесы гасят силы от поршней.
+          </p>
+        </article>
+
+        <article>
+          <h3>Смазка и охлаждение</h3>
+          <p>
+            Масло подаётся под давлением к коренным и шатунным вкладышам, а через каналы
+            в коленвале — дальше к поршням и распредвалам. Охлаждающая жидкость идёт по рубашке
+            вокруг цилиндров и головок: двенадцать цилиндров выделяют много тепла, поэтому
+            насос и радиатор рассчитаны с запасом.
+          </p>
+        </article>
+      </div>
+
+      <div class="sources">
+        <h3>Источники и оговорки</h3>
+        <p>
+          Характеристики: <a href="https://en.wikipedia.org/wiki/Mercedes-Benz_M120_engine" target="_blank" rel="noopener">Wikipedia — Mercedes-Benz M120 engine</a>.
+          Цепной привод ГРМ подтверждается каталогами запчастей для M120.980 и M120.982.
+        </p>
+        <p>
+          В модели правдоподобно приняты: расстояние между цилиндрами 106 мм, длина шатуна 145 мм,
+          толщины стенок и размеры крышек. <b>Моменты затяжки в этом проекте не приводятся намеренно</b> —
+          их берут из заводского руководства по ремонту, а не из интернета: ошибка здесь стоит мотора.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ПРОВЕРКА ЗНАНИЙ ================= -->
+  <section id="quiz" class="section">
+    <div class="wrap">
+      <p class="eyebrow">05 — Проверка</p>
+      <h2>Проверьте, что запомнили</h2>
+      <p class="lead">Шесть вопросов по устройству. После ответа появится объяснение.</p>
+      <p class="quiz-score" id="quiz-score">Отвечено 0 из 6</p>
+      <div class="quiz" id="quiz-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= ПОДВАЛ ================= -->
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>Учебный проект. 3D-модель схематичная: структура верная, формы упрощены.</p>
+    <p>Свёрстан Жукович Роман · <a href="../../index.html">портфолио</a></p>
+  </div>
+</footer>
+
+<!-- Всплывающее уведомление -->
+<div class="note" id="note"></div>
+
+<!-- Набор иконок -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-piston" viewBox="0 0 24 24">
+    <path d="M8 3h8v9H8z"/><path d="M10 12v6"/><path d="M14 12v6"/>
+    <circle cx="12" cy="20.5" r="2"/><path d="M8 6h8M8 9h8"/>
+  </symbol>
+</svg>
+
+<!-- Three.js (классическая сборка r147: работает и при открытии файла двойным кликом) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="data.js"></script>
+<script src="model.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

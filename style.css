@@ -283,6 +283,16 @@ a:focus-visible, button:focus-visible {
 /* На тёмной миниатюре подписи должны быть светлыми */
 .thumb-stars .thumb-content { color: #dbe6ff; }
 
+/* Миниатюра демо «M120 V12» — гараж: тёмный металл, оранжевый сигнальный свет */
+.thumb-v12 {
+  background:
+    radial-gradient(130px 70px at 50% 82%, rgba(234, 88, 12, .40), rgba(234, 88, 12, 0) 70%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .05) 0 2px, rgba(0, 0, 0, 0) 2px 24px),
+    linear-gradient(160deg, #2a3038 0%, #171a20 60%, #0e1014 100%);
+}
+
+.thumb-v12 .thumb-content { color: #ffd7b0; }
+
 .thumb-bar {
   position: absolute;
   top: 0; left: 0; right: 0;
