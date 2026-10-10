@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Значок демо-пекарни: буханка на сливочном фоне -->
+  <rect width="64" height="64" rx="14" fill="#fdf7ee"/>
+  <circle cx="32" cy="34" r="19" fill="#c98b4b"/>
+  <circle cx="26" cy="28" r="10" fill="#dcab72" opacity=".55"/>
+  <path d="M18 27 L46 22 M18 34 L46 29 M20 41 L44 36"
+        stroke="#f3d09c" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Значок демо «Звёздная пыль»: ночное небо и пылинки -->
+  <rect width="64" height="64" rx="14" fill="#060a18"/>
+  <circle cx="32" cy="33" r="9" fill="#7cc6ff" opacity=".3"/>
+  <circle cx="32" cy="33" r="3.4" fill="#ffffff"/>
+  <circle cx="17" cy="19" r="2.6" fill="#cfe0ff"/>
+  <circle cx="47" cy="15" r="2" fill="#9fb6ff"/>
+  <circle cx="42" cy="47" r="2.6" fill="#ffd08a"/>
+  <circle cx="21" cy="45" r="2" fill="#d9b8ff"/>
+  <circle cx="50" cy="33" r="1.6" fill="#8fd8ff"/>
+</svg>
