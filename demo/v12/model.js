@@ -29,10 +29,18 @@ const BANK = BANK_DEG * Math.PI / 180;
 const HALF_LEN = (CYL - 1) * SPACING / 2;          // 265
 const BLOCK_LEN = HALF_LEN * 2 + 150;              // 680
 const PISTON_H = 62;
-const PIN_OFFSET = 32;
-const DECK = CRANK_R + ROD + PIN_OFFSET - 30;      // плоскость блока над осью
+const PIN_H = 31;                                  // центр пальца ниже днища поршня
+const DECK = CRANK_R + ROD + PIN_H + 6;            // плоскость блока над осью ≈ 222 мм
 const THROW_DEG = [0, 120, 240, 0, 120, 240];
 const V12_DEG = 180 / Math.PI;
+
+/* Расстояние от оси коленвала до центра поршневого пальца вдоль оси цилиндра.
+   Берётся из условия «длина шатуна постоянна»: это точка на оси цилиндра,
+   удалённая от шатунной шейки ровно на длину шатуна.
+   psi — угол шейки с поправкой на наклон ряда (половина развала). */
+function pinDistance(psi) {
+  return CRANK_R * Math.cos(psi) + Math.sqrt(ROD * ROD - Math.pow(CRANK_R * Math.sin(psi), 2));
+}
 
 function buildEngine(THREE) {
   const root = new THREE.Group();
@@ -169,7 +177,9 @@ function buildEngine(THREE) {
     /* гильзы: зеркало цилиндра и фаска сверху */
     for (let i = 0; i < CYL; i++) {
       const x = -HALF_LEN + i * SPACING;
-      mesh(new THREE.CylinderGeometry(BORE / 2, BORE / 2, DECK - 40, 36, 1, true), MAT.bore, bank, [x, (DECK - 40) / 2 + 12, 0]);
+      /* зеркало цилиндра: от картера до плоскости блока, чтобы поршень
+         не выходил за пределы гильзы на всём ходе */
+      mesh(new THREE.CylinderGeometry(BORE / 2, BORE / 2, DECK - 12, 36, 1, true), MAT.bore, bank, [x, (DECK - 12) / 2 + 4, 0]);
       mesh(new THREE.CylinderGeometry(BORE / 2 + 6, BORE / 2, 8, 36, 1, true), MAT.aluDark, bank, [x, DECK - 4, 0]);
       /* отверстия рубашки охлаждения в плоскости блока */
       for (const ang of [40, 140, 220, 320]) {
@@ -227,15 +237,32 @@ function buildEngine(THREE) {
   /* ============================================================
      ПОРШНИ, КОЛЬЦА, ПАЛЬЦЫ, ШАТУНЫ, ВКЛАДШИНЫ
      ============================================================ */
+  /* Данные для анимации: сюда складываем всё, что должно двигаться.
+     app.js читает этот блок и крутит коленвал, поршни, клапаны и цепь. */
+  const motion = {
+    params: {
+      CRANK_R: CRANK_R, ROD: ROD, BANK: BANK, BANK_DEG: BANK_DEG,
+      SPACING: SPACING, HALF_LEN: HALF_LEN, CYL: CYL, DECK: DECK,
+      THROW_DEG: THROW_DEG, springLen: 46
+    },
+    pistons: [],
+    valves: [],
+    camLobes: [],
+    chain: null
+  };
+  root.userData.motion = motion;
+
   const pistons = [];
   for (const s of [-1, 1]) {
     for (let i = 0; i < CYL; i++) {
-      const deg = THROW_DEG[i] + (s > 0 ? 60 : 0);
-      const d = (function (deg2) {
-        const a = deg2 / V12_DEG;
-        return CRANK_R * Math.cos(a) + Math.sqrt(ROD * ROD - Math.pow(CRANK_R * Math.sin(a), 2)) + PIN_OFFSET;
-      })(deg);
-      pistons.push({ s: s, i: i, x: -HALF_LEN + i * SPACING, deg: deg, d: d, phi: deg / V12_DEG });
+      const phi = THROW_DEG[i] / V12_DEG;          // угол шатунной шейки
+      const psi = phi - s * BANK;                  // он же с поправкой на наклон ряда
+      pistons.push({
+        s: s, i: i,
+        x: -HALF_LEN + i * SPACING,
+        phi: phi, psi: psi, deg: THROW_DEG[i],
+        d: pinDistance(psi)                        // центр пальца вдоль оси цилиндра
+      });
     }
   }
 
@@ -315,6 +342,12 @@ function buildEngine(THREE) {
     rodBearingPart.add(rb);
     mesh(new THREE.CylinderGeometry(28.6, 28.6, 48, 28, 1, true), MAT.bronze, rb, [0, 0, 0], [0, 0, Math.PI / 2]);
     mesh(new THREE.CylinderGeometry(21.5, 21.5, 30, 22, 1, true), MAT.bronze, rb, [0, len - 22, 0], [0, 0, Math.PI / 2]);
+
+    /* всё, что нужно для анимации этого цилиндра */
+    motion.pistons.push({
+      s: p.s, x: p.x, i: p.i, phi: p.phi, psi: p.psi, rodLen: len,
+      pistonG: pg, ringsG: rg, pinG: ping, rodG: rg2, bearingG: rb
+    });
   });
 
   /* ============================================================
@@ -337,9 +370,6 @@ function buildEngine(THREE) {
   const coverPart = part('cam_cover', [0, 2.1, 0]);
 
   const valveSpots = [];
-  const springSpots = [];
-  const bucketSpots = [];
-  const retainerSpots = [];
 
   for (const s of [-1, 1]) {
     const bank = new THREE.Group();
@@ -416,11 +446,13 @@ function buildEngine(THREE) {
 
       for (let i = 0; i < CYL; i++) {
         const x = -HALF_LEN + i * SPACING;
-        /* кулачок: основание и выступ */
+        /* Кулачок: основание (радиус 21) и выступ (радиус 30,5).
+           Разница радиусов равна ходу клапана 9,5 мм, поэтому выступ
+           упирается в толкатель ровно так, как показывает анимация. */
         const base = mesh(new THREE.CylinderGeometry(21, 21, 18, 22), MAT.steelDark, cam, [x, DECK + 92, dz], [0, 0, Math.PI / 2]);
-        base.rotation.x = (i + k * 3) * 0.9;
-        const lift = mesh(new THREE.CylinderGeometry(24, 24, 18, 20, 1, false, 0, Math.PI), MAT.steelDark, cam, [x, DECK + 92, dz], [0, 0, Math.PI / 2]);
-        lift.rotation.x = (i + k * 3) * 0.9;
+        const lift = mesh(new THREE.CylinderGeometry(30.5, 30.5, 18, 22, 1, false, 0, Math.PI), MAT.steel, cam, [x, DECK + 92, dz], [0, 0, Math.PI / 2]);
+        /* фазу задаём при анимации: распредвал вращается вдвое медленнее коленвала */
+        motion.camLobes.push({ mesh: lift, baseMesh: base, cyl: i, bank: s, kind: k ? 'ex' : 'in' });
       }
       /* шейки распредвала */
       for (let i = 0; i < 7; i++) {
@@ -431,78 +463,74 @@ function buildEngine(THREE) {
       mesh(new THREE.CylinderGeometry(34, 34, 20, 30), MAT.steelDark, cam, [-BLOCK_LEN / 2 + 22, DECK + 92, dz], [0, 0, Math.PI / 2]);
     }
 
-    /* точки клапанов, пружин, толкателей */
+    /* точки клапанов: четыре на цилиндр — два впускных, два выпускных */
     for (let i = 0; i < CYL; i++) {
       const x = -HALF_LEN + i * SPACING;
       for (const dz of [-44, -22, 22, 44]) {
-        valveSpots.push({ s: s, x: x, dz: dz, d: DECK + 34, ang: (dz < 0 ? 1 : -1) * 0.09 });
-        springSpots.push({ s: s, x: x, dz: dz * 1.02, d: DECK + 84, ang: (dz < 0 ? 1 : -1) * 0.09 });
-        retainerSpots.push({ s: s, x: x, dz: dz * 1.02, d: DECK + 104, ang: (dz < 0 ? 1 : -1) * 0.09 });
-        bucketSpots.push({ s: s, x: x, dz: dz * 1.03, d: DECK + 112, ang: (dz < 0 ? 1 : -1) * 0.09 });
+        valveSpots.push({
+          s: s, x: x, dz: dz, i: i,
+          side: dz < 0 ? 'in' : 'ex',
+          ang: (dz < 0 ? 1 : -1) * 0.09
+        });
       }
     }
   }
 
-  /* --- клапаны: стержень, тарелка, сухари --- */
+  /* --- клапаны, пружины, тарелки, толкатели ---
+     Положение каждой детали запоминаем: анимация будет двигать их
+     по фазам газораспределения, не пересобирая сцену. */
   const valvePart = part('valve', [0, 1, 0]);
-  const valveSpotsStem = valveSpots.map((v) => ({
-    pos: alongBore(v.s, v.x, v.d + 44),
-    rot: [v.s * BANK + v.ang, 0, 0]
-  }));
-  instanced(new THREE.CylinderGeometry(5, 5, 96, 12), MAT.polished, valvePart, valveSpotsStem);
-
-  const valveHeadSpots = valveSpots.map((v) => ({
-    pos: (function () {
-      const base = alongBore(v.s, v.x, v.d - 34);
-      const local = new THREE.Vector3(0, 0, v.dz - v.dz * 0.02).applyAxisAngle(new THREE.Vector3(1, 0, 0), v.s * BANK);
-      base.add(local);
-      return base;
-    })(),
-    rot: [v.s * BANK + v.ang, 0, 0]
-  }));
-  instanced(new THREE.CylinderGeometry(18, 11, 14, 20), MAT.polished, valvePart, valveHeadSpots);
-
-  /* --- пружины: настоящая спираль --- */
   const springPart = part('spring', [0, 1, 0]);
-  const springGeo = springGeometry(12.5, 46, 5);
-  instanced(springGeo, MAT.steel, springPart, springSpots.map((v) => ({
-    pos: (function () {
-      const base = alongBore(v.s, v.x, v.d);
-      base.add(new THREE.Vector3(0, 0, v.dz - v.dz * 0.02).applyAxisAngle(new THREE.Vector3(1, 0, 0), v.s * BANK));
-      return base;
-    })(),
-    rot: [v.s * BANK + v.ang, 0, 0]
-  })));
-
-  /* --- тарелки пружин и сухари --- */
   const retainerPart = part('retainer', [0, 1, 0]);
-  instanced(new THREE.CylinderGeometry(15, 13, 6, 18), MAT.steelDark, retainerPart, retainerSpots.map((v) => ({
-    pos: (function () {
-      const base = alongBore(v.s, v.x, v.d);
-      base.add(new THREE.Vector3(0, 0, v.dz - v.dz * 0.02).applyAxisAngle(new THREE.Vector3(1, 0, 0), v.s * BANK));
-      return base;
-    })(),
-    rot: [v.s * BANK + v.ang, 0, 0]
-  })));
-
-  /* --- толкатели с шайбой --- */
   const bucketPart = part('bucket', [0, 1, 0]);
-  instanced(new THREE.CylinderGeometry(15, 15, 24, 20), MAT.steelDark, bucketPart, bucketSpots.map((v) => ({
-    pos: (function () {
-      const base = alongBore(v.s, v.x, v.d);
-      base.add(new THREE.Vector3(0, 0, v.dz - v.dz * 0.02).applyAxisAngle(new THREE.Vector3(1, 0, 0), v.s * BANK));
-      return base;
-    })(),
-    rot: [v.s * BANK + v.ang, 0, 0]
-  })));
-  instanced(new THREE.CylinderGeometry(13.5, 13.5, 3, 20), MAT.zinc, bucketPart, bucketSpots.map((v) => ({
-    pos: (function () {
-      const base = alongBore(v.s, v.x, v.d + 13);
-      base.add(new THREE.Vector3(0, 0, v.dz * 0.97).applyAxisAngle(new THREE.Vector3(1, 0, 0), v.s * BANK));
-      return base;
-    })(),
-    rot: [v.s * BANK + v.ang, 0, 0]
-  })));
+
+  const SPRING_LEN = 46;          /* длина пружины в свободном состоянии */
+  const SPRING_BOTTOM = DECK + 3; /* нижняя опора пружины — не двигается */
+
+  const valveData = valveSpots.map((v) => {
+    const a = v.s * BANK + v.ang;
+    const axis = new THREE.Vector3(0, Math.cos(a), Math.sin(a));         /* ось клапана */
+    const off = new THREE.Vector3(0, 0, v.dz).applyAxisAngle(new THREE.Vector3(1, 0, 0), v.s * BANK);
+    const at = (d) => alongBore(v.s, v.x, d).add(off);
+    return {
+      side: v.side, cyl: v.i, bank: v.s,
+      axis: axis,
+      rot: [a, 0, 0],
+      head: at(DECK + 2),           /* тарелка клапана у седла */
+      stem: at(DECK + 34),          /* стержень */
+      spring: at(DECK + 26),        /* центр пружины */
+      retainer: at(DECK + 50),      /* тарелка пружины на стержне */
+      bucket: at(DECK + 62),        /* толкатель под кулачком */
+      shim: at(DECK + 72)           /* регулировочная шайба сверху */
+    };
+  });
+
+  const valveStemGeo = new THREE.CylinderGeometry(5, 5, 96, 12);
+  const valveHeadGeo = new THREE.CylinderGeometry(18, 11, 14, 20);
+  const springGeo = springGeometry(12.5, SPRING_LEN, 5);
+  const retainerGeo = new THREE.CylinderGeometry(15, 13, 6, 18);
+  const bucketGeo = new THREE.CylinderGeometry(15, 15, 18, 20);
+  const shimGeo = new THREE.CylinderGeometry(13.5, 13.5, 3, 20);
+
+  const stemMesh = instanced(valveStemGeo, MAT.polished, valvePart,
+    valveData.map((v) => ({ pos: v.stem.clone(), rot: v.rot })));
+  const headMesh = instanced(valveHeadGeo, MAT.polished, valvePart,
+    valveData.map((v) => ({ pos: v.head.clone(), rot: v.rot })));
+  const springMesh = instanced(springGeo, MAT.steel, springPart,
+    valveData.map((v) => ({ pos: v.spring.clone(), rot: v.rot })));
+  const retainerMesh = instanced(retainerGeo, MAT.steelDark, retainerPart,
+    valveData.map((v) => ({ pos: v.retainer.clone(), rot: v.rot })));
+  const bucketMesh = instanced(bucketGeo, MAT.steelDark, bucketPart,
+    valveData.map((v) => ({ pos: v.bucket.clone(), rot: v.rot })));
+  const shimMesh = instanced(shimGeo, MAT.zinc, bucketPart,
+    valveData.map((v) => ({ pos: v.shim.clone(), rot: v.rot })));
+
+  motion.valves = valveData;
+  motion.valveMeshes = {
+    stems: stemMesh, heads: headMesh, springs: springMesh,
+    retainers: retainerMesh, buckets: bucketMesh, shims: shimMesh,
+    springLen: SPRING_LEN, springBottom: SPRING_BOTTOM
+  };
 
   /* ============================================================
      ЦЕПЬ ГРМ: звенья, звёздочки, успокоители
@@ -545,8 +573,10 @@ function buildEngine(THREE) {
       plates.push({ pos: pos.clone(), quat: q.clone() });
       pins.push({ pos: pos.clone().add(tan.clone().multiplyScalar(9)), quat: q.clone(), rot: [0, 0, Math.PI / 2] });
     }
-    instanced(plateGeo, MAT.steelDark, chainPart, plates);
-    instanced(pinGeo, MAT.zinc, chainPart, pins);
+    const plateMesh = instanced(plateGeo, MAT.steelDark, chainPart, plates);
+    const pinMesh = instanced(pinGeo, MAT.zinc, chainPart, pins);
+    /* цепь должна бежать по контуру — отдаём кривую и меши анимации */
+    motion.chain = { curve: curve, count: count, plates: plateMesh, pins: pinMesh };
   })();
 
   /* успокоитель и натяжитель */

@@ -81,6 +81,7 @@
 
       <div class="viewer">
         <!-- Сцена -->
+        <div class="stage-col">
         <div class="stage">
           <canvas id="scene"></canvas>
 
@@ -114,6 +115,28 @@
             <span><b>Колесо</b> — масштаб</span>
             <span><b>ПКМ</b> — сдвиг</span>
             <span class="hl"><b>ЛКМ + колесо</b> — снять / поставить</span>
+          </div>
+        </div>
+
+          <!-- Работа двигателя: ход поршней, клапаны, такты цилиндров -->
+          <div class="run-strip">
+            <div class="run-controls">
+              <button type="button" id="btn-run">Запустить двигатель</button>
+              <label class="run-speed" for="run-speed">Обороты: <b id="run-rpm">45</b> об/мин
+                <input type="range" id="run-speed" min="10" max="300" step="5" value="45">
+              </label>
+              <span class="run-angle">Угол коленвала: <b id="run-angle">0°</b></span>
+            </div>
+
+            <p class="run-order" id="run-order"></p>
+            <div class="run-cyls" id="run-cyls"></div>
+
+            <p class="run-note">
+              Такты идут по циклу: <b class="st-in">впуск</b> → <b class="st-comp">сжатие</b> →
+              <b class="st-power">рабочий ход</b> → <b class="st-ex">выпуск</b>. Порядок работы и фазы
+              выведены из геометрии этой модели, поэтому они учебные: точные значения для реального
+              M120 берут из заводского руководства.
+            </p>
           </div>
         </div>
 

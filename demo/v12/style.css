@@ -483,6 +483,109 @@ input[type="range"]::-webkit-slider-thumb {
 
 .controls-hint .hl { color: var(--orange-2); border-left: 1px solid var(--line-2); padding-left: 12px; }
 
+/* ============================================================
+   РАБОТА ДВИГАТЕЛЯ: пуск, обороты, такты цилиндров
+   ============================================================ */
+.stage-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.run-strip {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  padding: 16px 18px;
+}
+
+.run-controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-bottom: 12px; }
+
+#btn-run {
+  min-height: 44px;
+  padding: 10px 20px;
+  font-family: var(--font-head);
+  font-size: 14px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: 1px solid var(--orange);
+  background: transparent;
+  color: var(--orange-2);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+#btn-run:hover { background: rgba(234, 88, 12, .16); }
+#btn-run.on { background: var(--orange); color: #12151a; }
+
+.run-speed {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.run-speed b { color: var(--ink); }
+.run-speed input[type="range"] { width: 150px; }
+
+.run-angle {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.run-angle b { color: var(--orange-2); }
+
+.run-order { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
+.run-order b { color: var(--ink); }
+
+.run-cyls { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+
+.cyl-card {
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--panel-2);
+  padding: 6px 4px 7px;
+  text-align: center;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.cyl-card b { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+
+.cyl-card.firing {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 1px var(--orange), 0 0 14px rgba(234, 88, 12, .35);
+}
+
+.cyl-card.firing b { color: var(--orange-2); }
+
+.cyl-strokes { display: flex; gap: 2px; }
+
+.cyl-strokes i {
+  flex: 1;
+  height: 18px;
+  border-radius: 3px;
+  background: #2a303a;
+  opacity: .45;
+  transition: opacity .12s linear;
+}
+
+.cyl-strokes i.on { opacity: 1; }
+.cyl-strokes i.st-in.on { background: #3b82f6; }
+.cyl-strokes i.st-comp.on { background: #eab308; }
+.cyl-strokes i.st-power.on { background: #ef4444; }
+.cyl-strokes i.st-ex.on { background: #8d97a6; }
+
+.run-note { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+.run-note b { font-family: var(--font-mono); font-size: 12px; }
+.run-note .st-in { color: #60a5fa; }
+.run-note .st-comp { color: #facc15; }
+.run-note .st-power { color: #f87171; }
+.run-note .st-ex { color: #9aa5b4; }
+
 /* --- загрузчик и ошибка --- */
 .loader {
   display: flex;
@@ -756,6 +859,7 @@ input[type="range"]::-webkit-slider-thumb {
   .explode-bar { position: static; margin-top: 0; border-radius: 0; border-left: 0; border-right: 0; }
   .badge { display: none; }
   .quiz { grid-template-columns: 1fr; }
+  .run-cyls { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

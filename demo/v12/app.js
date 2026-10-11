@@ -796,6 +796,267 @@
   } catch (err) { /* параметры не разобрались — работаем как обычно */ }
 
   /* ============================================================
+     11б. РАБОТА ДВИГАТЕЛЯ: кинематика, фазы, индикация
+     ============================================================ */
+  const motion = root.userData.motion;
+  const MP = motion ? motion.params : null;
+
+  const RUN = {
+    on: false,
+    angle: 0,            /* угол коленвала, 0…720° */
+    rpm: 45,
+    chainPhase: 0,
+    panelAt: 0
+  };
+
+  const MAX_LIFT = 9.5;                     /* ход клапана, мм */
+  const IN_OPEN = 350, IN_CLOSE = 570;      /* впуск открыт с 350° до 570° */
+  const EX_OPEN = 130, EX_CLOSE = 380;      /* выпуск открыт с 130° до 380° */
+
+  const STROKES = [
+    { name: 'впуск', cls: 'st-in' },
+    { name: 'сжатие', cls: 'st-comp' },
+    { name: 'рабочий ход', cls: 'st-power' },
+    { name: 'выпуск', cls: 'st-ex' }
+  ];
+
+  /* Подъём клапана: плавная волна от открытия до закрытия */
+  function liftCurve(u, open, close) {
+    let d = u - open;
+    const span = close - open;
+    if (d < 0) d += 720;
+    if (d > span) return 0;
+    return MAX_LIFT * Math.sin(Math.PI * d / span);
+  }
+
+  /* Полный ход поршня вдоль оси цилиндра для текущего угла коленвала */
+  function pinAt(psi, th) {
+    const a = psi + th;
+    return MP.CRANK_R * Math.cos(a) + Math.sqrt(MP.ROD * MP.ROD - Math.pow(MP.CRANK_R * Math.sin(a), 2));
+  }
+
+  const alongBoreRoot = (s, x, d) =>
+    new T.Vector3(x, d * Math.cos(MP.BANK), s * d * Math.sin(MP.BANK));
+
+  const cylKey = (s, i) => (s < 0 ? 'Л' : 'П') + (i + 1);
+
+  /* Углы вспышек. ВМТ у цилиндра при θ = −psi (mod 360), и на каждой ВМТ
+     вспышки получают по очереди два цилиндра, стоящие в ней: один сейчас,
+     второй через оборот. Поэтому у четырёхтактного V12 вспышки идут ровно
+     через каждые 60° поворота коленвала. */
+  const firing = {};
+  const firingOrder = [];
+
+  if (MP) {
+    const byTdc = {};
+    motion.pistons.forEach((p) => {
+      const tdc = ((-p.psi * 180 / Math.PI) % 360 + 360) % 360;
+      const key = Math.round(tdc);
+      if (!byTdc[key]) byTdc[key] = [];
+      byTdc[key].push(p);
+    });
+    Object.keys(byTdc).map(Number).sort((a, b) => a - b).forEach((tdc) => {
+      byTdc[tdc].forEach((p, n) => {
+        firing[cylKey(p.s, p.i)] = (tdc + n * 360) % 720;
+      });
+    });
+    Object.keys(firing)
+      .sort((a, b) => firing[a] - firing[b])
+      .forEach((k) => firingOrder.push(k));
+  }
+
+  /* --- панель: двенадцать цилиндров и их такты --- */
+  function buildRunPanel() {
+    const box = $('#run-cyls');
+    if (!box) return;
+    box.innerHTML = '';
+    Object.keys(firing).sort((a, b) => (a < b ? -1 : 1)).forEach((key) => {
+      const card = document.createElement('div');
+      card.className = 'cyl-card';
+      card.dataset.key = key;
+      card.innerHTML = '<b>' + key + '</b><span class="cyl-strokes">' +
+        '<i class="st-in"></i><i class="st-comp"></i><i class="st-power"></i><i class="st-ex"></i></span>';
+      box.appendChild(card);
+    });
+
+    const order = $('#run-order');
+    if (order) {
+      order.innerHTML = '<span>Порядок работы (у этой модели):</span> ' +
+        firingOrder.map((k) => '<b>' + k + '</b>').join(' → ');
+    }
+  }
+
+  function updateRunPanel() {
+    const readout = $('#run-angle');
+    if (readout) readout.textContent = Math.round(RUN.angle) + '°';
+
+    $$('#run-cyls .cyl-card').forEach((card) => {
+      const key = card.dataset.key;
+      const fu = firing[key];
+      if (fu === undefined) return;
+      const u = ((RUN.angle - fu) % 720 + 720) % 720;
+      const seg = Math.floor(((u + 360) % 720) / 180);      /* 0 впуск … 3 выпуск */
+      const parts = card.querySelectorAll('.cyl-strokes i');
+      for (let i = 0; i < parts.length; i++) parts[i].classList.toggle('on', i === seg);
+      card.classList.toggle('firing', u < 40);
+    });
+  }
+
+  /* --- пересчёт положения деталей под текущий угол --- */
+  const _q = new T.Quaternion();
+  const _e = new T.Euler();
+  const _m = new T.Matrix4();
+  const _one = new T.Vector3(1, 1, 1);
+  const _sc = new T.Vector3(1, 1, 1);
+  const _p1 = new T.Vector3();
+  const _p2 = new T.Vector3();
+  const _up = new T.Vector3(0, 1, 0);
+  const _ux = new T.Vector3(1, 0, 0);
+
+  function setInst(mesh, n, pos, rot, scaleY) {
+    _e.set(rot[0], rot[1], rot[2]);
+    _q.setFromEuler(_e);
+    _sc.set(1, scaleY === undefined ? 1 : scaleY, 1);
+    _m.compose(pos, _q, _sc);
+    mesh.setMatrixAt(n, _m);
+  }
+
+  function updateMotion(dt) {
+    if (!MP || !RUN.on) return;
+    RUN.angle = (RUN.angle + RUN.rpm * 6 * dt) % 720;      /* об/мин → градусы в секунду */
+    const th = RUN.angle * Math.PI / 180;
+
+    /* поршни, кольца, пальцы, шатуны, вкладыши */
+    if (installed('piston')) {
+      motion.pistons.forEach((p) => {
+        const d = pinAt(p.psi, th);
+        const pin = alongBoreRoot(p.s, p.x, d);
+        _p2.set(p.x, MP.CRANK_R * Math.cos(p.phi + th), MP.CRANK_R * Math.sin(p.phi + th));
+        _p1.subVectors(pin, _p2).normalize();
+        _q.setFromUnitVectors(_up, _p1);
+
+        p.pistonG.position.copy(pin);
+        p.ringsG.position.copy(pin);
+        p.pinG.position.copy(pin);
+        p.rodG.position.copy(_p2);
+        p.rodG.quaternion.copy(_q);
+        p.bearingG.position.copy(_p2);
+        p.bearingG.quaternion.copy(_q);
+      });
+    }
+
+    /* клапаны: стержень, тарелка, пружина (сжимается), толкатель, шайба */
+    if (installed('valve')) {
+      const vm = motion.valveMeshes;
+      const springLen = vm.springLen;
+      motion.valves.forEach((v, n) => {
+        const fu = firing[cylKey(v.bank, v.cyl)];
+        if (fu === undefined) return;
+        const u = ((RUN.angle - fu) % 720 + 720) % 720;
+        const lift = v.side === 'in'
+          ? liftCurve(u, IN_OPEN, IN_CLOSE)
+          : liftCurve(u, EX_OPEN, EX_CLOSE);
+
+        /* клапан идёт вниз, к цилиндру */
+        _p1.copy(v.head).addScaledVector(v.axis, -lift);
+        setInst(vm.heads, n, _p1, v.rot);
+        _p1.copy(v.stem).addScaledVector(v.axis, -lift);
+        setInst(vm.stems, n, _p1, v.rot);
+        _p1.copy(v.retainer).addScaledVector(v.axis, -lift);
+        setInst(vm.retainers, n, _p1, v.rot);
+        _p1.copy(v.bucket).addScaledVector(v.axis, -lift);
+        setInst(vm.buckets, n, _p1, v.rot);
+        _p1.copy(v.shim).addScaledVector(v.axis, -lift);
+        setInst(vm.shims, n, _p1, v.rot);
+
+        /* пружина: низ стоит на месте, верх идёт за тарелкой */
+        _p1.copy(v.spring).addScaledVector(v.axis, -lift / 2);
+        setInst(vm.springs, n, _p1, v.rot, (springLen - lift) / springLen);
+      });
+      vm.heads.instanceMatrix.needsUpdate = true;
+      vm.stems.instanceMatrix.needsUpdate = true;
+      vm.retainers.instanceMatrix.needsUpdate = true;
+      vm.buckets.instanceMatrix.needsUpdate = true;
+      vm.shims.instanceMatrix.needsUpdate = true;
+      vm.springs.instanceMatrix.needsUpdate = true;
+    }
+
+    /* распредвалы: вдвое медленнее коленвала */
+    if (installed('camshaft')) {
+      motion.camLobes.forEach((l) => {
+        const fu = firing[cylKey(l.bank, l.cyl)] || 0;
+        const phase = (fu * Math.PI / 180) / 2 + (l.kind === 'ex' ? Math.PI : 0);
+        l.mesh.rotation.x = phase + RUN.angle * Math.PI / 360;
+      });
+    }
+
+    /* цепь бежит по контуру */
+    if (motion.chain && installed('chain')) {
+      const ch = motion.chain;
+      RUN.chainPhase = (RUN.chainPhase + (RUN.rpm * 6 * dt) / 360) % 1;
+      for (let i = 0; i < ch.count; i++) {
+        const t = ((i / ch.count) + RUN.chainPhase) % 1;
+        const pos = ch.curve.getPointAt(t);
+        const tan = ch.curve.getTangentAt(t);
+        _q.setFromUnitVectors(_ux, tan);
+        _m.compose(pos, _q, _one);
+        ch.plates.setMatrixAt(i, _m);
+        _p1.copy(pos).addScaledVector(tan, 9);
+        _m.compose(_p1, _q, _one);
+        ch.pins.setMatrixAt(i, _m);
+      }
+      ch.plates.instanceMatrix.needsUpdate = true;
+      ch.pins.instanceMatrix.needsUpdate = true;
+    }
+
+    /* индикацию обновляем реже, чем кадры: так дешевле для браузера */
+    const now = performance.now();
+    if (now - RUN.panelAt > 90) {
+      RUN.panelAt = now;
+      updateRunPanel();
+    }
+  }
+
+  const btnRun = $('#btn-run');
+  if (btnRun) {
+    btnRun.addEventListener('click', () => {
+      RUN.on = !RUN.on;
+      btnRun.textContent = RUN.on ? 'Остановить двигатель' : 'Запустить двигатель';
+      btnRun.classList.toggle('on', RUN.on);
+      if (!RUN.on) updateRunPanel();
+    });
+  }
+
+  const speed = $('#run-speed');
+  if (speed) {
+    speed.addEventListener('input', () => {
+      RUN.rpm = Number(speed.value);
+      const out = $('#run-rpm');
+      if (out) out.textContent = String(RUN.rpm);
+    });
+  }
+
+  /* запуск прямо из адреса: ?run=1&rpm=120 — удобно дать ссылкой */
+  try {
+    const q2 = new URLSearchParams(window.location.search);
+    if (q2.get('run') === '1') {
+      RUN.on = true;
+      if (btnRun) { btnRun.textContent = 'Остановить двигатель'; btnRun.classList.add('on'); }
+      if (q2.has('rpm')) {
+        const r = Math.max(10, Math.min(300, Number(q2.get('rpm')) || 45));
+        RUN.rpm = r;
+        if (speed) speed.value = String(r);
+        const out = $('#run-rpm');
+        if (out) out.textContent = String(r);
+      }
+      updateRunPanel();
+    }
+  } catch (err) { /* параметр не разобрался — работаем как обычно */ }
+
+  /* панель строим здесь: к этому моменту порядок работы уже посчитан */
+  buildRunPanel();
+
+  /* ============================================================
      12. ЦИКЛ ОТРИСОВКИ: плавный выезд деталей и вращение снятых
      ============================================================ */
   let prevTime = performance.now();
@@ -873,6 +1134,10 @@
         moved = true;
       }
     });
+
+    /* анимация работы двигателя: коленвал, поршни, клапаны, распредвалы, цепь */
+    updateMotion(dt);
+    if (RUN.on) moved = true;
 
     if (moved) renderer.shadowMap.needsUpdate = true;
 
