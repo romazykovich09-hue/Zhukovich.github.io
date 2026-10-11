@@ -122,8 +122,9 @@ body::after {
   width: 320px;
   padding: 14px 16px 30px;
   overflow-y: auto;
-  background: rgba(6, 10, 24, .84);
-  backdrop-filter: blur(14px);
+  /* Без backdrop-filter: размытие поверх анимированного холста дорого,
+     особенно на телефонах. Фон просто плотнее. */
+  background: rgba(6, 10, 24, .95);
   border-left: 1px solid var(--line);
   font-size: 13px;
   color: #c9d7f5;
@@ -132,6 +133,51 @@ body::after {
 }
 
 .panel.collapsed { transform: translateX(103%); }
+
+/* Липкая шапка панели с крестиком: на телефоне так закрывать удобнее */
+.panel-head {
+  position: sticky;
+  top: -14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -14px -16px 8px;
+  padding: 12px 14px 10px;
+  background: rgba(6, 10, 24, .97);
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head h2 { margin: 0; }
+
+.panel-close {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 150, 220, .35);
+  background: rgba(18, 28, 58, .9);
+  color: #dbe6ff;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.panel-close:hover { background: rgba(35, 50, 95, .95); }
+
+/* Затемнение под панелью: нужно только на телефоне */
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  background: rgba(2, 4, 12, .6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+.panel-backdrop.show { opacity: 1; pointer-events: auto; }
 
 .panel::-webkit-scrollbar { width: 9px; }
 .panel::-webkit-scrollbar-thumb { background: rgba(120, 150, 220, .28); border-radius: 99px; }
@@ -261,19 +307,43 @@ select {
   height: 46px;
   border-radius: 50%;
   border: 1px solid rgba(120, 150, 220, .3);
-  background: rgba(10, 16, 36, .85);
+  background: rgba(10, 16, 36, .95);
   color: #cfe0ff;
   font-size: 19px;
   line-height: 1;
   cursor: pointer;
-  backdrop-filter: blur(8px);
   transition: transform .2s, background .2s;
 }
 
 .panel-toggle:hover { transform: scale(1.07); background: rgba(24, 36, 72, .95); }
 
+/* Подсказка: на телефоне говорим про палец, а не про мышь */
+.hint-touch { display: none; }
+
 /* --- Узкие экраны --- */
 @media (max-width: 760px) {
-  .panel { width: 88vw; top: 44px; }
+  .panel { width: min(92vw, 400px); top: 44px; font-size: 14.5px; }
   .hint { max-width: 84vw; bottom: 78px; }
+  .hint-mouse { display: none; }
+  .hint-touch { display: inline; }
+  /* Элементы под палец: не мельче 44 px */
+  .panel button, .panel select, .panel input[type="color"] { min-height: 44px; }
+  .panel input[type="range"] { height: 36px; }
+  .panel-toggle { width: 52px; height: 52px; font-size: 21px; }
+}
+
+/* Ничто в панели не должно выходить за её края: на телефоне
+   ползунки и списки иначе уезжают за границу экрана */
+.panel { overflow-x: hidden; }
+.panel input[type="range"] { margin: 0; }   /* у браузера свой отступ в 2 px */
+.panel select,
+.panel input,
+.panel button,
+.panel .field,
+.panel .group,
+.panel .buttons { max-width: 100%; min-width: 0; }
+
+/* Затемнение нужно только там, где панель перекрывает почти весь экран */
+@media (min-width: 761px) {
+  .panel-backdrop { display: none; }
 }

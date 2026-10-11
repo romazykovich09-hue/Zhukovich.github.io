@@ -329,6 +329,7 @@
       flash(id, GOOD);
       log('Верно: «' + shortName(id) + '» снята', 'ok');
       updateStats();
+      if (selectedId === id) renderInfo(id);
       return;
     }
 
@@ -350,6 +351,7 @@
     flash(id, GOOD);
     log('Верно: «' + shortName(id) + '» на месте', 'ok');
     updateStats();
+    if (selectedId === id) renderInfo(id);
   }
 
   function resetTrainer() {
@@ -362,6 +364,7 @@
     const box = $('#train-log');
     if (box) box.innerHTML = '';
     updateStats();
+    if (selectedId) renderInfo(selectedId); else updateTouchBar();
     toast('Все детали возвращены на место');
   }
 
@@ -467,6 +470,34 @@
     if (ins) ins.addEventListener('click', () => attempt(id, 'in'));
     if (foc) foc.addEventListener('click', () => focusOn(id, 1.2));
     if (iso) iso.addEventListener('click', () => toggleIsolate(id));
+    updateTouchBar();
+  }
+
+  /* Быстрые кнопки под сценой. На телефоне колеса мыши нет, поэтому
+     деталь выбирают касанием, а снимают и ставят этими кнопками. */
+  const touchName = $('#touch-name');
+  const touchOut = $('#touch-out');
+  const touchIn = $('#touch-in');
+
+  function updateTouchBar() {
+    if (!touchName) return;
+    touchName.textContent = selectedId
+      ? shortName(selectedId) + (installed(selectedId) ? ' — на месте' : ' — снята')
+      : 'Выберите деталь на модели';
+  }
+
+  if (touchOut) {
+    touchOut.addEventListener('click', () => {
+      if (selectedId) attempt(selectedId, 'out');
+      else toast('Сначала коснитесь детали на модели');
+    });
+  }
+
+  if (touchIn) {
+    touchIn.addEventListener('click', () => {
+      if (selectedId) attempt(selectedId, 'in');
+      else toast('Сначала коснитесь детали на модели');
+    });
   }
 
   function toggleIsolate(id) {
@@ -670,11 +701,39 @@
   /* ============================================================
      10. КНОПКИ, МЫШЬ, КЛАВИАТУРА
      ============================================================ */
+  let currentView = 'full';
+
   function setView(name) {
     const p = CAMERA_PRESETS[name];
     if (!p) return;
-    camera.position.set(p.pos[0], p.pos[1] + ENGINE_Y, p.pos[2]);
-    controls.target.set(p.target[0], p.target[1] + ENGINE_Y, p.target[2]);
+    currentView = name;
+
+    /* Направление взгляда берём из пресета, а расстояние считаем по размеру
+       установленных деталей и пропорциям экрана. В вертикальном положении
+       телефона кадр узкий: фиксированное расстояние обрезало бы двигатель. */
+    const box = new T.Box3();
+    partIds.forEach((id) => { if (installed(id)) box.expandByObject(parts[id]); });
+
+    const center = box.isEmpty()
+      ? new T.Vector3(0, ENGINE_Y + 80, 0)
+      : box.getCenter(new T.Vector3());
+
+    const dir = new T.Vector3(
+      p.pos[0] - p.target[0],
+      p.pos[1] - p.target[1],
+      p.pos[2] - p.target[2]
+    ).normalize();
+
+    const sphere = box.isEmpty() ? { radius: 700 } : box.getBoundingSphere(new T.Sphere());
+    const vFov = camera.fov * Math.PI / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    const dist = Math.max(
+      sphere.radius / Math.sin(vFov / 2),
+      sphere.radius / Math.sin(hFov / 2)
+    ) * 1.15;
+
+    controls.target.copy(center);
+    camera.position.copy(center).addScaledVector(dir, Math.max(dist, 260));
     controls.update();
   }
 
@@ -743,14 +802,23 @@
   });
 
   function resize() {
-    const wrap = renderer.domElement.parentElement;
-    const w = wrap.clientWidth;
-    const h = wrap.clientHeight;
+    /* Размер берём у самого холста: на телефоне он задан отдельно от сцены,
+       и высота сцены там не равна высоте холста */
+    const rect = renderer.domElement.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
-  window.addEventListener('resize', resize);
+
+  window.addEventListener('resize', () => {
+    const before = camera.aspect;
+    resize();
+    /* Пересобираем кадр только при заметной смене пропорций — например при
+       повороте телефона. Скрытие адресной строки так кадр не дёргает. */
+    if (before && Math.abs(camera.aspect - before) / before > 0.12) setView(currentView);
+  });
 
   /* ============================================================
      11. ЗАПУСК
@@ -759,8 +827,8 @@
   buildSteps();
   buildQuiz();
   fillSpecs();
-  setView('full');
-  resize();
+  resize();                 /* сначала узнаём пропорции экрана */
+  setView('full');          /* и только потом выбираем расстояние камеры */
   applyXray();
   updateStats();
 

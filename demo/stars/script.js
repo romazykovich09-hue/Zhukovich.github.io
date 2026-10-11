@@ -20,6 +20,7 @@ const sctx = sparkCanvas.getContext('2d');
 const hint = document.querySelector('.hint');
 const panel = document.getElementById('panel');
 const panelToggle = document.getElementById('panelToggle');
+const panelBackdrop = document.getElementById('panelBackdrop');
 
 // Системная настройка «уменьшить движение» — делаем эффект спокойнее
 const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -224,9 +225,22 @@ const CONTROLS = [
 function buildPanel() {
   panel.innerHTML = '';
 
+  const head = document.createElement('div');
+  head.className = 'panel-head';
+
   const title = document.createElement('h2');
   title.textContent = 'Настройки эффекта';
-  panel.append(title);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'panel-close';
+  closeBtn.textContent = '✕';
+  closeBtn.title = 'Закрыть настройки';
+  closeBtn.setAttribute('aria-label', 'Закрыть настройки');
+  closeBtn.addEventListener('click', togglePanel);
+
+  head.append(title, closeBtn);
+  panel.append(head);
 
   const sub = document.createElement('p');
   sub.className = 'sub';
@@ -340,6 +354,21 @@ function setSetting(key, value) {
 
 function applyPanelState() {
   panel.classList.toggle('collapsed', !settings.panelOpen);
+  if (panelBackdrop) panelBackdrop.classList.toggle('show', settings.panelOpen);
+  if (panelToggle) {
+    panelToggle.textContent = settings.panelOpen ? '✕' : '⚙';
+    panelToggle.setAttribute('aria-expanded', settings.panelOpen ? 'true' : 'false');
+    panelToggle.title = settings.panelOpen
+      ? 'Скрыть настройки (клавиша H)'
+      : 'Показать настройки (клавиша H)';
+  }
+}
+
+/* На телефоне панель широкая и закрывает весь эффект, поэтому при открытии
+   страницы она свёрнута. В ссылке можно задать обратное: ?panelOpen=1 */
+function applyNarrowDefault() {
+  if (new URLSearchParams(location.search).has('panelOpen')) return;
+  if (window.innerWidth <= 760) settings.panelOpen = false;
 }
 
 function applyHintState() {
@@ -832,6 +861,7 @@ function togglePanel() {
 }
 
 panelToggle.addEventListener('click', togglePanel);
+if (panelBackdrop) panelBackdrop.addEventListener('click', togglePanel);
 
 window.addEventListener('pointerdown', onDown);
 window.addEventListener('pointermove', onMove);
@@ -850,6 +880,7 @@ window.addEventListener('keydown', (event) => {
    ============================================================ */
 
 loadSettings();
+applyNarrowDefault();
 buildPanel();
 applyPanelState();
 applyHintState();

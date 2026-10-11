@@ -22,11 +22,17 @@
 <canvas id="dust" aria-hidden="true"></canvas>
 <canvas id="sparks" aria-hidden="true"></canvas>
 
-<p class="hint">Зажми левую кнопку мыши — мерцание закрутится вокруг курсора. Веди мышью — потянется шлейф.</p>
+<p class="hint">
+  <span class="hint-mouse">Зажми левую кнопку мыши — мерцание закрутится вокруг курсора. Веди мышью — потянется шлейф.</span>
+  <span class="hint-touch">Веди пальцем по экрану — мерцание закрутится вокруг пальца. Двигай дальше — потянется шлейф.</span>
+</p>
 
 <!-- Панель настроек: содержимое собирает script.js -->
 <aside class="panel" id="panel" aria-label="Настройки эффекта"></aside>
-<button class="panel-toggle" id="panelToggle" type="button" title="Показать или скрыть настройки (клавиша H)">⚙</button>
+<button class="panel-toggle" id="panelToggle" type="button" aria-expanded="true" aria-controls="panel" title="Показать или скрыть настройки (клавиша H)">⚙</button>
+
+<!-- Затемнение под панелью: только на телефоне, нажатие закрывает настройки -->
+<div class="panel-backdrop" id="panelBackdrop"></div>
 
 <script src="script.js"></script>
 </body>

@@ -586,6 +586,60 @@ input[type="range"]::-webkit-slider-thumb {
 .run-note .st-power { color: #f87171; }
 .run-note .st-ex { color: #9aa5b4; }
 
+/* ============================================================
+   БЫСТРЫЕ ДЕЙСТВИЯ С ДЕТАЛЬЮ
+   Отдельная полоса под сценой: на телефоне колеса мыши нет,
+   поэтому деталь выбирают касанием, а снимают и ставят кнопками.
+   ============================================================ */
+.touch-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+}
+
+.touch-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 0;
+}
+
+.touch-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.touch-actions button {
+  min-height: 46px;
+  padding: 10px 20px;
+  font-family: var(--font-head);
+  font-size: 14px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: 1px solid var(--line-2);
+  background: var(--panel-2);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+}
+
+.touch-actions button:hover { border-color: var(--orange); color: var(--orange-2); }
+#touch-out { border-color: rgba(234, 88, 12, .5); }
+#touch-in { border-color: rgba(74, 222, 128, .35); }
+
+/* Подсказка про палец — только там, где нет мыши с колесом */
+.touch-only { display: none; }
+
+@media (max-width: 1100px) {
+  .touch-only { display: inline; }
+  .touch-bar { flex-direction: column; align-items: stretch; }
+  .touch-actions { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
 /* --- загрузчик и ошибка --- */
 .loader {
   display: flex;
@@ -853,13 +907,31 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 760px) {
   :root { --pad: 18px; }
   .section { padding: 58px 0; }
-  .stage { height: 58vh; }
-  .controls-hint { display: none; }
-  .toolbar { position: static; padding: 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
-  .explode-bar { position: static; margin-top: 0; border-radius: 0; border-left: 0; border-right: 0; }
+  /* На телефоне панель инструментов и ползунок стоят в потоке,
+     а холст получает свою высоту — иначе они наезжают друг на друга.
+     Порядок задаём явно: инструменты сверху, холст, потом ползунок. */
+  .stage { height: auto; display: flex; flex-direction: column; }
+  #scene { height: 54vh; min-height: 300px; order: 0; }
+  .toolbar { position: static; order: -1; padding: 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .explode-bar { position: static; order: 1; margin-top: 0; border-radius: 0; border-left: 0; border-right: 0; }
+  .controls-hint { display: none; }   /* подсказка про мышь на телефоне не нужна */
   .badge { display: none; }
   .quiz { grid-template-columns: 1fr; }
   .run-cyls { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* --- Телефон: сжимаем первый экран, чтобы 3D-модель была ближе к началу --- */
+@media (max-width: 620px) {
+  .hero { padding: 34px 0 28px; }
+  .hero-actions { margin-bottom: 22px; }
+  .hero .lead { font-size: 16.5px; }
+  /* Характеристик шестнадцать: в две колонки список вдвое короче */
+  .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .spec { padding: 12px; }
+  .spec-label { font-size: 10.5px; letter-spacing: .06em; }
+  .spec-value { font-size: 16px; margin: 5px 0 3px; }
+  .spec-note { font-size: 12px; }
+  .honest { font-size: 14px; padding: 14px 15px; margin-top: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
